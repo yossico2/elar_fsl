@@ -15,12 +15,10 @@
 #include <tinyxml2.h>
 
 #include "config.h"
-#include "udp.h" // will be renamed to udp_server.h
-#include "uds.h"
+#include "udp_server.h"
+#include "uds_server.h"
 
 using namespace tinyxml2;
-
-// Global variables needed for cleanup
 
 void signal_handler(int signum)
 {
@@ -56,7 +54,7 @@ int main()
     }
 
     // ====================================================
-    // Step 2: Initialize UDS Server Socket (using UdsServerSocket class)
+    // Step 2: Initialize UDS Server Socket
     // ====================================================
     UdsServerSocket uds(config.uds_my_path, config.uds_target_path);
     if (!uds.bindSocket())
