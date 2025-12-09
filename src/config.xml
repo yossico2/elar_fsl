@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-    <udp_settings>
+    <udp>
         <local_port>5000</local_port>
         <remote_ip>192.168.1.10</remote_ip>
         <remote_port>6000</remote_port>
-    </udp_settings>
+    </udp>
 
-    <uds_settings>
+    <uds>
         <my_path>/tmp/fsl.sock</my_path>
         <target_path>/tmp/app.sock</target_path>
-    </uds_settings>
+    </uds>
 </config>

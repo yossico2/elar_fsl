@@ -31,6 +31,7 @@ int main()
     signal(SIGINT, signal_handler);
 
     AppConfig config;
+
     try
     {
         config = load_config("./config.xml");
