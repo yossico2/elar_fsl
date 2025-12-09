@@ -1,14 +1,7 @@
+
 #include <iostream>
-#include <string>
-#include <vector>
-#include <cstring>
 #include <csignal>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <poll.h>
+#include "app.h"
 
 #include "app.h"
 
