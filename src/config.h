@@ -1,3 +1,19 @@
+// config.h - Configuration structures and loader for FSL
+//
+// Defines the AppConfig struct, which holds all configuration parameters loaded from config.xml.
+// Used by the App class to set up UDP and UDS sockets and routing.
+//
+// Fields:
+//   - udp_local_port: Local UDP port for FSL
+//   - udp_remote_ip: Remote IP address for UDP communication
+//   - udp_remote_port: Remote UDP port
+//   - uds_servers: List of UDS server socket paths (downlink)
+//   - uds_clients: Map of UDS client names to paths (uplink)
+//   - ul_uds_mapping: Map of message opcodes to UDS client names (for uplink routing)
+//
+// Function:
+//   - load_config(const char *filename): Parses config.xml and returns AppConfig
+
 #pragma once
 #include <string>
 #include <vector>
@@ -6,9 +22,9 @@
 
 struct AppConfig
 {
-    int udp_local_port;
-    std::string udp_remote_ip;
-    int udp_remote_port;
+    int udp_local_port;        ///< Local UDP port for FSL
+    std::string udp_remote_ip; ///< Remote IP address for UDP communication
+    int udp_remote_port;       ///< Remote UDP port
 
     // Downlink: UDS servers (one or more per app)
     std::vector<std::string> uds_servers;
@@ -20,4 +36,4 @@ struct AppConfig
     std::map<uint16_t, std::string> ul_uds_mapping;
 };
 
-AppConfig load_config(const char *filename);
+AppConfig load_config(const char *filename); ///< Parses config.xml and returns AppConfig

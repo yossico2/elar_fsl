@@ -14,6 +14,7 @@ void signal_handler(int signum)
 int main()
 {
     signal(SIGINT, signal_handler);
+
     try
     {
         App fsl("config.xml");

@@ -1,3 +1,19 @@
+// uds.cpp - Implementation of UdsSocket for FSL
+//
+// This file implements the UdsSocket class, which wraps Unix Domain Socket (UDS)
+// datagram operations for both server and client roles in the FSL system.
+//
+// - Server sockets are bound to a path and receive downlink messages from apps.
+// - Client sockets send uplink messages to app UDS endpoints.
+//
+// Key methods:
+//   - bindSocket(): Bind the socket to my_path_ (server)
+//   - send(): Send a datagram to target_path_ (client)
+//   - receive(): Receive a datagram from the socket
+//
+// Error handling: Throws std::runtime_error on socket creation/binding errors.
+// Logs send/receive errors using perror.
+
 #include "uds.h"
 #include <unistd.h>
 #include <cstring>

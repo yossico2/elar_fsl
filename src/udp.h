@@ -1,15 +1,30 @@
+// udp.h - UDP Socket wrapper for FSL
+//
+// UdpServerSocket provides a simple interface for creating, binding, sending, and receiving
+// datagrams over UDP sockets. Used for communication between FSL and the ground segment (GSL).
+//
+// Usage:
+//   - UdpServerSocket(local_port, remote_ip, remote_port)
+//   - bindSocket(): Bind the socket to local_port
+//   - send(): Send a datagram to remote_ip:remote_port
+//   - receive(): Receive a datagram from the socket
+//   - getFd(): Get the socket file descriptor
+//
+// Error handling: Throws std::runtime_error on socket creation/binding errors.
+
 #pragma once
 #include <string>
 #include <netinet/in.h>
 
-class UdpServerSocket {
+class UdpServerSocket
+{
 public:
-    UdpServerSocket(int local_port, const std::string& remote_ip, int remote_port);
+    UdpServerSocket(int local_port, const std::string &remote_ip, int remote_port);
     ~UdpServerSocket();
 
     bool bindSocket();
-    ssize_t send(const void* buffer, size_t length);
-    ssize_t receive(void* buffer, size_t length, sockaddr_in* sender_addr = nullptr);
+    ssize_t send(const void *buffer, size_t length);
+    ssize_t receive(void *buffer, size_t length, sockaddr_in *sender_addr = nullptr);
     int getFd() const;
 
 private:

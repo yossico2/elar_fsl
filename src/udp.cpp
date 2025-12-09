@@ -1,3 +1,17 @@
+// udp.cpp - Implementation of UdpServerSocket for FSL
+//
+// This file implements the UdpServerSocket class, which wraps UDP datagram operations
+// for communication between FSL and the ground segment (GSL).
+//
+// Key methods:
+//   - bindSocket(): Bind the socket to local_port_
+//   - send(): Send a datagram to remote_addr_
+//   - receive(): Receive a datagram from the socket
+//   - getFd(): Get the socket file descriptor
+//
+// Error handling: Throws std::runtime_error on socket creation/binding errors.
+// Logs send/receive errors using perror.
+
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
@@ -26,28 +40,23 @@ UdpServerSocket::UdpServerSocket(int local_port, const std::string &remote_ip, i
         throw std::runtime_error("Error creating UDP socket");
     }
 
-    int reuse = 1;
-    if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
+    int opt = 1;
+    if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     {
-        close(fd_);
         throw std::runtime_error("setsockopt(SO_REUSEADDR) failed");
     }
 }
 
 UdpServerSocket::~UdpServerSocket()
 {
-    if (fd_ != -1)
-    {
+    if (fd_ >= 0)
         close(fd_);
-    }
 }
 
 bool UdpServerSocket::bindSocket()
 {
     if (bind(fd_, (struct sockaddr *)&local_addr_, sizeof(local_addr_)) < 0)
-    {
         return false;
-    }
     return true;
 }
 

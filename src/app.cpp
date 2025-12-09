@@ -1,11 +1,28 @@
+// app.cpp - Implementation of the FSL Application
+//
+// This file implements the App class, which manages UDP and UDS sockets for routing
+// messages between the ground segment (GSL) and space segment applications.
+//
+// Key features:
+//   - Loads configuration from XML (see config.xml)
+//   - Validates UDS mapping and socket paths
+//   - Creates and binds UDP/UDS sockets
+//   - Routes messages based on opcode and UDS mapping
+//   - Logs message routing and errors
+//   - Handles graceful shutdown via SIGINT/SIGTERM
+//   - Cleans up sockets and UDS files on exit
+//
+// Main event loop: Uses poll() to wait for UDP and UDS events, routes messages accordingly.
+// Error handling: Prints errors for invalid config, socket failures, and message routing issues.
+
 #include "app.h"
 #include <iostream>
 #include <poll.h>
 #include <csignal>
 #include <signal.h>
-#include "icd.h"
 #include <unistd.h>
 #include <set>
+#include "icd.h"
 
 volatile sig_atomic_t App::shutdown_flag_ = 0;
 
@@ -46,6 +63,7 @@ App::App(const std::string &config_path)
             std::cerr << "[CONFIG ERROR] Duplicate UDS server path: '" << path << "'" << std::endl;
         }
     }
+
     for (const auto &client : config_.uds_clients)
     {
         if (client.second.empty())

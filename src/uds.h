@@ -1,3 +1,20 @@
+// uds.h - Unix Domain Socket wrapper for FSL
+//
+// UdsSocket provides a simple interface for creating, binding, sending, and receiving
+// datagrams over Unix Domain Sockets (UDS). Used for both server (downlink) and client (uplink)
+// communication between FSL and application processes.
+//
+// Usage:
+//   - Server: UdsSocket(server_path, "")
+//   - Client: UdsSocket("", target_path)
+//
+// Methods:
+//   - bindSocket(): Bind the socket to my_path_ (for servers)
+//   - send(): Send a datagram to target_path_
+//   - receive(): Receive a datagram from the socket
+//   - getFd(): Get the socket file descriptor
+//   - getMyPath(): Get the bound path (server)
+
 #pragma once
 #include <string>
 #include <sys/socket.h>
