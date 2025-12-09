@@ -1,3 +1,13 @@
+# Catch2 test target
+
+# Catch2 test target
+add_executable(tests
+    tests/test_config.cpp
+    src/config.cpp
+)
+target_include_directories(tests PRIVATE tests src)
+target_link_libraries(tests PRIVATE tinyxml2)
+
 cmake_minimum_required(VERSION 3.10)
 project(fsl)
 

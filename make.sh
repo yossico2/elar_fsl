@@ -68,6 +68,10 @@ function main() {
 	fi
 
 	make
+	# Also build tests target if present
+	if grep -q 'add_executable *(tests' ../CMakeLists.txt; then
+		make tests || true
+	fi
 	cd ..
 
 	# Print in green
