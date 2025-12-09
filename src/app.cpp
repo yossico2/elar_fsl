@@ -1,9 +1,9 @@
-#include "fsl.h"
+#include "app.h"
 #include <iostream>
 #include <poll.h>
 #include <csignal>
 
-FSL::FSL(const std::string &config_path)
+App::App(const std::string &config_path)
     : config_(load_config(config_path.c_str())),
       udp_(config_.udp_local_port, config_.udp_remote_ip, config_.udp_remote_port),
       uds_(config_.uds_my_path, config_.uds_target_path)
@@ -18,9 +18,9 @@ FSL::FSL(const std::string &config_path)
     }
 }
 
-void FSL::run()
+void App::run()
 {
-    std::cout << "FSL Service Running (XML Config).\n"
+    std::cout << "App Service Running (XML Config).\n"
               << "UDP: " << config_.udp_local_port << " <-> " << config_.udp_remote_ip << ":" << config_.udp_remote_port << "\n"
               << "UDS: " << config_.uds_my_path << " -> " << config_.uds_target_path << std::endl;
 

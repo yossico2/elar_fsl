@@ -4,10 +4,10 @@
 #include "udp_server.h"
 #include "uds_server.h"
 
-class FSL
+class App
 {
 public:
-    FSL(const std::string &config_path);
+    App(const std::string &config_path);
     void run();
 
 private:

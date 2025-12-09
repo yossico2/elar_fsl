@@ -14,7 +14,7 @@
 // Ensure libtinyxml2-dev is installed on your PetaLinux rootfs
 #include <tinyxml2.h>
 
-#include "fsl.h"
+#include "app.h"
 
 using namespace tinyxml2;
 
@@ -29,12 +29,12 @@ int main()
     signal(SIGINT, signal_handler);
     try
     {
-        FSL fsl("./config.xml");
+        App fsl("./config.xml");
         fsl.run();
     }
     catch (const std::exception &e)
     {
-        std::cerr << "FSL error: " << e.what() << std::endl;
+        std::cerr << "App error: " << e.what() << std::endl;
         return 1;
     }
     return 0;
