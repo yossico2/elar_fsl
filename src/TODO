@@ -1,0 +1,49 @@
+fsl (space segment) is responsible for communication to and from the satellite.
+gsl (ground segment) is responsible for communication to and from the satellite at the ground.
+The communication link is simulated using udp.
+
+There are several applications (apps) at the space segment.
+Each app has one or more uds channels to fsl for downlink (dl) messages (e.g: for high/low priority).
+Each app has one uds channel for uplink (ul) messages (comming from the ground and ending at the specific app).
+
+For downlink messages, fsl is the uds server.
+For uplink messages, fsl is the uds client.
+
+Downlink (dl) messages accepted from an app at some uds server should be sent via udp to gsl.
+
+Uplink Messages received via udp socket should be routed to the correct uds client based on the message opcode.
+
+I want config.xml to define a set of server uds for downlink messages (one or more per each app) 
+and a set of client uds for uplink messages (one per each app).
+
+I also want to define a mapping between message opcodes and uds names for ul messages.
+The uds names in the mapping should match the client uds names defined earlier.
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <udp>
+        <local_port>5000</local_port>
+        <remote_ip>127.0.0.1</remote_ip>
+        <remote_port>6000</remote_port>
+    </udp>
+
+    <uds>
+        <!-- app1 -->
+        <server>/tmp/app1.fsl1.dl.high.sock</server>
+        <server>/tmp/app1.fsl1.dl.low.sock</server>
+        <client name="app1.ul">/tmp/app1.fsl1.ul.sock</server>
+        
+        <!-- app2 -->
+        <server>/tmp/app2.fsl1.dl.high.sock</server>
+        <server>/tmp/app2.fsl1.dl.low.sock</server>
+        <client name="app2.ul">/tmp/app2.fsl1.ul.sock</server>
+    </uds>
+
+    <ul_uds_mapping>
+        <mapping opcode=1 uds="fsl1.app1.ul" />
+        <mapping opcode=2 uds="fsl1.app2.ul" />
+    </ul_uds_mapping>
+
+</config>
