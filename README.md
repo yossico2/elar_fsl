@@ -137,3 +137,19 @@ See `tests/test_config.cpp` for a config parser test using Catch2. To run all te
 ```bash
 ./build-debug/tests
 ```
+
+## Environment Variable Override
+
+You can override the UDP configuration from `config.xml` by setting the following environment variables before running FSL:
+
+- `FSL_LOCAL_PORT`: Overrides the UDP local port
+- `FSL_REMOTE_IP`:  Overrides the UDP remote IP address
+- `FSL_REMOTE_PORT`: Overrides the UDP remote port
+
+Example usage:
+
+```bash
+FSL_LOCAL_PORT=1234 FSL_REMOTE_IP=1.2.3.4 FSL_REMOTE_PORT=5678 ./build-debug/fsl
+```
+
+If set, these variables take precedence over the values in `config.xml`.

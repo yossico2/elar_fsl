@@ -1,6 +1,7 @@
 #include "config.h"
 #include <stdexcept>
 #include <iostream>
+#include <cstdlib>
 
 // Include TinyXML-2 header
 // Ensure libtinyxml2-dev is installed on your PetaLinux rootfs
@@ -84,6 +85,20 @@ AppConfig load_config(const char *filename)
                 config.ul_uds_mapping[static_cast<uint16_t>(opcode)] = uds_name;
             }
         }
+    }
+
+    // --- Override with environment variables if set ---
+    if (const char *env = std::getenv("FSL_LOCAL_PORT"))
+    {
+        config.udp_local_port = std::atoi(env);
+    }
+    if (const char *env = std::getenv("FSL_REMOTE_IP"))
+    {
+        config.udp_remote_ip = env;
+    }
+    if (const char *env = std::getenv("FSL_REMOTE_PORT"))
+    {
+        config.udp_remote_port = std::atoi(env);
     }
 
     return config;
