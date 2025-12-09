@@ -10,13 +10,7 @@
 #include <arpa/inet.h>
 #include <poll.h>
 
-// Include TinyXML-2 header
-// Ensure libtinyxml2-dev is installed on your PetaLinux rootfs
-#include <tinyxml2.h>
-
 #include "app.h"
-
-using namespace tinyxml2;
 
 void signal_handler(int signum)
 {
