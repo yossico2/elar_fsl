@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <udp_settings>
+        <local_port>5000</local_port>
+        <remote_ip>192.168.1.10</remote_ip>
+        <remote_port>6000</remote_port>
+    </udp_settings>
+
+    <uds_settings>
+        <my_path>/tmp/bridge_service.sock</my_path>
+        <target_path>/tmp/target_app.sock</target_path>
+    </uds_settings>
+</config>

@@ -22,5 +22,7 @@ endif()
 
 add_executable(fsl src/main.cpp src/example.cpp)
 
+target_link_libraries(fsl PRIVATE tinyxml2)
+
 # Add include directories
 include_directories(src)
