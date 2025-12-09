@@ -20,9 +20,15 @@ else()
     message(STATUS "Compiling for Ubuntu/Linux")
 endif()
 
-add_executable(fsl src/main.cpp src/example.cpp)
+add_executable(fsl src/main.cpp)
 
 target_link_libraries(fsl PRIVATE tinyxml2)
 
 # Add include directories
 include_directories(src)
+
+# Copy config.xml to the build output directory after build
+add_custom_command(TARGET fsl POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/src/config.xml
+        $<TARGET_FILE_DIR:fsl>/config.xml)

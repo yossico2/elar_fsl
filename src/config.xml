@@ -7,7 +7,7 @@
     </udp_settings>
 
     <uds_settings>
-        <my_path>/tmp/bridge_service.sock</my_path>
-        <target_path>/tmp/target_app.sock</target_path>
+        <my_path>/tmp/fsl.sock</my_path>
+        <target_path>/tmp/app.sock</target_path>
     </uds_settings>
 </config>

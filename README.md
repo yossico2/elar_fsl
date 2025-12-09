@@ -5,24 +5,24 @@ This project is a simple C++ application using CMake, designed to compile for ei
 ## Building for Ubuntu/Linux
 
 
-### Building with build.sh
+### Building with make.sh
 
 You can use the provided script to build for different configurations and targets:
 
 ```bash
 # Default (Debug, Linux)
-./build.sh
+./make.sh
 
 # Specify build type (debug or release)
-./build.sh -b debug
-./build.sh -b release
+./make.sh -b debug
+./make.sh -b release
 
 # Specify target (linux or petalinux)
-./build.sh -t linux
-./build.sh -t petalinux
+./make.sh -t linux
+./make.sh -t petalinux
 
 # Combine options
-./build.sh -b release -t petalinux
+./make.sh -b release -t petalinux
 ```
 
 The script will automatically use separate build directories for each configuration.
