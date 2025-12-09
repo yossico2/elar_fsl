@@ -107,9 +107,18 @@ int main() {
     // ====================================================
     // Step 1: Initialize UDP Socket
     // ====================================================
+
     int udp_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (udp_fd < 0) {
         perror("Error creating UDP socket");
+        return 1;
+    }
+
+    // Set SO_REUSEADDR to allow reuse of the address
+    int reuse = 1;
+    if (setsockopt(udp_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+        perror("setsockopt(SO_REUSEADDR) failed");
+        close(udp_fd);
         return 1;
     }
 
