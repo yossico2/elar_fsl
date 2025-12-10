@@ -4,7 +4,10 @@ set -e
 
 function main() {
 	print_usage() {
-		echo "Usage: $0 [-b|--build debug|release] [-t|--target linux|petalinux] [-h|--help]"
+		echo "Usage: $0 [clean|test|all] [-b|--build debug|release] [-t|--target linux|petalinux] [-h|--help]"
+		echo "  clean         Remove build-debug and build-release folders"
+		echo "  test          Run unit and integration tests"
+		echo "  all           Run clean, build, and test"
 		echo "  -b, --build   Build type: debug (default) or release"
 		echo "  -t, --target  Target platform: linux (default) or petalinux"
 		echo "  -h, --help    Show this help message"
@@ -13,7 +16,47 @@ function main() {
 	BUILD_DIR="build-debug"
 	TARGET="linux"
 
-	# Parse arguments
+	# Handle positional arguments (clean, test, all)
+	if [[ "$1" == "clean" ]]; then
+		echo -e "\e[97;44mCleaning build folders...\e[0m"
+		rm -rf build-debug build-release
+		echo -e "\e[32mClean completed.\e[0m"
+		exit 0
+	elif [[ "$1" == "test" ]]; then
+		echo -e "\e[97;44mRunning unit tests...\e[0m"
+		if [[ -d build-debug ]]; then
+			(cd build-debug && ./tests)
+			UNIT_STATUS=$?
+		else
+			echo "No build-debug directory found. Please build first."
+			exit 1
+		fi
+		if [[ $UNIT_STATUS -ne 0 ]]; then
+			echo -e "\e[41mUnit tests FAILED.\e[0m"
+			exit $UNIT_STATUS
+		fi
+		echo -e "\e[97;44mRunning integration tests...\e[0m"
+		if [[ -f tests/run_integration.sh ]]; then
+			bash tests/run_integration.sh
+			INTEGRATION_STATUS=$?
+		else
+			echo "No integration test script found."
+			INTEGRATION_STATUS=0
+		fi
+		if [[ $INTEGRATION_STATUS -ne 0 ]]; then
+			echo -e "\e[41mIntegration tests FAILED.\e[0m"
+			exit $INTEGRATION_STATUS
+		fi
+		echo -e "\e[32mTest run completed successfully.\e[0m"
+		exit 0
+	elif [[ "$1" == "all" ]]; then
+		"$0" clean
+		"$0"
+		"$0" test
+		exit 0
+	fi
+
+	# Parse options
 	while [[ $# -gt 0 ]]; do
 		key="$1"
 		case $key in
