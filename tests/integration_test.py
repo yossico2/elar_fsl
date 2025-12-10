@@ -54,7 +54,7 @@ def test_udp_to_uds():
     """Test: GSL sends UDP, FSL routes to correct UDS client."""
     udp_ip = "127.0.0.1"
     udp_port = 5000
-    uds_client_path = "/tmp/app1.fsl1.ul.sock"
+    uds_client_path = "/tmp/app1.fsl.ul.sock"
     opcode = 1
     payload = "hello_from_gsl"
     # Start UDS receiver (app) in a thread BEFORE sending UDP
@@ -74,7 +74,7 @@ def test_uds_to_udp():
     """Test: App sends to UDS server, FSL routes to UDP (GSL)."""
     udp_ip = "127.0.0.1"
     udp_port = 6000
-    uds_server_path = "/tmp/app1.fsl1.dl.high.sock"
+    uds_server_path = "/tmp/app1.fsl.dl.high.sock"
     payload = "hello_from_app"
     # Start UDP receiver (GSL)
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

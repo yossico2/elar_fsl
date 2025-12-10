@@ -19,6 +19,8 @@
 #include <cstring>
 #include <stdexcept>
 
+#include <sys/socket.h>
+
 UdsSocket::UdsSocket(const std::string &my_path, const std::string &target_path)
     : fd_(-1), my_path_(my_path), target_path_(target_path)
 {
@@ -35,6 +37,15 @@ UdsSocket::UdsSocket(const std::string &my_path, const std::string &target_path)
     {
         throw std::runtime_error("Error creating UDS socket");
     }
+}
+
+bool UdsSocket::setReceiveBufferSize(int size)
+{
+    if (fd_ < 0 || size <= 0)
+        return false;
+    if (setsockopt(fd_, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size)) < 0)
+        return false;
+    return true;
 }
 
 UdsSocket::~UdsSocket()

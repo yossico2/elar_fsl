@@ -52,15 +52,15 @@ App::App(const std::string &config_path)
 
     // 2. Ensure all UDS server/client paths are non-empty and unique
     std::set<std::string> uds_paths;
-    for (const auto &path : config_.uds_servers)
+    for (const auto &server : config_.uds_servers)
     {
-        if (path.empty())
+        if (server.path.empty())
         {
             std::cerr << "[CONFIG ERROR] UDS server path is empty." << std::endl;
         }
-        if (!uds_paths.insert(path).second)
+        if (!uds_paths.insert(server.path).second)
         {
-            std::cerr << "[CONFIG ERROR] Duplicate UDS server path: '" << path << "'" << std::endl;
+            std::cerr << "[CONFIG ERROR] Duplicate UDS server path: '" << server.path << "'" << std::endl;
         }
     }
 
@@ -77,13 +77,16 @@ App::App(const std::string &config_path)
     }
 
     // Create and bind all UDS servers (downlink)
-    for (size_t i = 0; i < config_.uds_servers.size(); ++i)
+    for (const auto &server_cfg : config_.uds_servers)
     {
-        const std::string &server_path = config_.uds_servers[i];
-        std::unique_ptr<UdsSocket> server(new UdsSocket(server_path, ""));
+        std::unique_ptr<UdsSocket> server(new UdsSocket(server_cfg.path, ""));
+        if (server_cfg.receive_buffer_size > 0)
+        {
+            server->setReceiveBufferSize(server_cfg.receive_buffer_size);
+        }
         if (!server->bindSocket())
         {
-            throw std::runtime_error("Error binding UDS server: " + server_path);
+            throw std::runtime_error("Error binding UDS server: " + server_cfg.path);
         }
         uds_servers_.push_back(std::move(server));
     }
@@ -96,6 +99,39 @@ App::App(const std::string &config_path)
         std::unique_ptr<UdsSocket> client(new UdsSocket("", path));
         uds_clients_[name] = std::move(client);
     }
+
+    // Create ctrl/status UDS sockets for each app/tod
+    for (const auto &entry : config_.ctrl_uds)
+    {
+        const std::string &app_name = entry.first;
+        const CtrlUdsConfig &cfg = entry.second;
+        CtrlUdsSockets sockets;
+        if (!cfg.request_path.empty())
+        {
+            sockets.request.reset(new UdsSocket(cfg.request_path, ""));
+            if (cfg.request_buffer_size > 0)
+            {
+                sockets.request->setReceiveBufferSize(cfg.request_buffer_size);
+            }
+            if (!sockets.request->bindSocket())
+            {
+                throw std::runtime_error("Error binding ctrl request UDS for " + app_name + ": " + cfg.request_path);
+            }
+        }
+        if (!cfg.response_path.empty())
+        {
+            sockets.response.reset(new UdsSocket(cfg.response_path, ""));
+            if (cfg.response_buffer_size > 0)
+            {
+                sockets.response->setReceiveBufferSize(cfg.response_buffer_size);
+            }
+            if (!sockets.response->bindSocket())
+            {
+                throw std::runtime_error("Error binding ctrl response UDS for " + app_name + ": " + cfg.response_path);
+            }
+        }
+        ctrl_uds_sockets_[app_name] = std::move(sockets);
+    }
 }
 
 void App::run()
@@ -104,14 +140,38 @@ void App::run()
               << "UDP: " << config_.udp_local_port << " <-> " << config_.udp_remote_ip << ":" << config_.udp_remote_port << std::endl;
     std::cout << "UDS Servers (downlink):\n";
     for (const auto &s : config_.uds_servers)
-        std::cout << "  " << s << std::endl;
+        std::cout << "  " << s.path << std::endl;
     std::cout << "UDS Clients (uplink):\n";
     for (const auto &entry : config_.uds_clients)
         std::cout << "  " << entry.first << ": " << entry.second << std::endl;
 
+    std::cout << "Ctrl/Status UDS:\n";
+    for (const auto &entry : config_.ctrl_uds)
+    {
+        const std::string &app = entry.first;
+        const CtrlUdsConfig &c = entry.second;
+        std::cout << "  [" << app << "]";
+        if (!c.request_path.empty())
+            std::cout << " request: " << c.request_path;
+        if (!c.response_path.empty())
+            std::cout << " response: " << c.response_path;
+        std::cout << std::endl;
+    }
+
     // --- Polling and routing logic ---
+    // Layout: [0]=UDP, [1..N]=UDS servers, [N+1..]=ctrl_uds_sockets_ (request/response)
     const size_t uds_count = uds_servers_.size();
-    const size_t nfds = 1 + uds_count; // 1 for UDP, rest for UDS servers
+    const size_t ctrl_count = ctrl_uds_sockets_.size();
+    // Each ctrl_uds_sockets_ entry can have up to 2 sockets (request, response)
+    std::vector<std::pair<std::string, std::string>> ctrl_keys; // (app_name, "request"/"response")
+    for (const auto &entry : ctrl_uds_sockets_)
+    {
+        if (entry.second.request)
+            ctrl_keys.emplace_back(entry.first, "request");
+        if (entry.second.response)
+            ctrl_keys.emplace_back(entry.first, "response");
+    }
+    const size_t nfds = 1 + uds_count + ctrl_keys.size();
     std::vector<pollfd> fds(nfds);
     // UDP socket
     fds[0].fd = udp_.getFd();
@@ -121,6 +181,19 @@ void App::run()
     {
         fds[1 + i].fd = uds_servers_[i]->getFd();
         fds[1 + i].events = POLLIN;
+    }
+    // ctrl_uds_sockets_ (request/response)
+    for (size_t i = 0; i < ctrl_keys.size(); ++i)
+    {
+        const auto &key = ctrl_keys[i];
+        const auto &sockets = ctrl_uds_sockets_.at(key.first);
+        int fd = -1;
+        if (key.second == "request" && sockets.request)
+            fd = sockets.request->getFd();
+        if (key.second == "response" && sockets.response)
+            fd = sockets.response->getFd();
+        fds[1 + uds_count + i].fd = fd;
+        fds[1 + uds_count + i].events = POLLIN;
     }
 
     char buffer[4096];
@@ -204,7 +277,38 @@ void App::run()
                 }
             }
         }
+
+        // --- ctrl_uds_sockets_ (request/response) handlers ---
+        for (size_t i = 0; i < ctrl_keys.size(); ++i)
+        {
+            if (fds[1 + uds_count + i].revents & POLLIN)
+            {
+                const auto &key = ctrl_keys[i];
+                const std::string &app_name = key.first;
+                const std::string &type = key.second; // "request" or "response"
+                // TODO: Implement ctrl/status message handling for app_name/type
+                int n = 0;
+                if (type == "request")
+                {
+                    n = ctrl_uds_sockets_[app_name].request->receive(buffer, sizeof(buffer));
+                }
+                else if (type == "response")
+                {
+                    n = ctrl_uds_sockets_[app_name].response->receive(buffer, sizeof(buffer));
+                }
+                if (n > 0)
+                {
+                    std::cout << "[CTRL] Received " << type << " for '" << app_name << "', bytes=" << n << std::endl;
+                    // TODO: Route/process ctrl/status message as needed
+                }
+                else if (n < 0)
+                {
+                    std::cerr << "[CTRL] Failed to receive " << type << " for '" << app_name << "'" << std::endl;
+                }
+            }
+        }
     }
+
     cleanup();
     std::cout << "[INFO] Graceful shutdown complete." << std::endl;
 }
@@ -239,6 +343,45 @@ void App::cleanup()
         client.second.reset();
     }
     uds_clients_.clear();
+
+    // Close and unlink ctrl/status UDS sockets
+    for (auto &entry : ctrl_uds_sockets_)
+    {
+        auto &sockets = entry.second;
+        if (sockets.request)
+        {
+            const std::string &path = sockets.request->getMyPath();
+            sockets.request.reset();
+            if (!path.empty())
+            {
+                if (unlink(path.c_str()) == 0)
+                {
+                    std::cout << "[INFO] Unlinked ctrl request UDS file: " << path << std::endl;
+                }
+                else
+                {
+                    perror(("[WARN] Failed to unlink ctrl request UDS file: " + path).c_str());
+                }
+            }
+        }
+        if (sockets.response)
+        {
+            const std::string &path = sockets.response->getMyPath();
+            sockets.response.reset();
+            if (!path.empty())
+            {
+                if (unlink(path.c_str()) == 0)
+                {
+                    std::cout << "[INFO] Unlinked ctrl response UDS file: " << path << std::endl;
+                }
+                else
+                {
+                    perror(("[WARN] Failed to unlink ctrl response UDS file: " + path).c_str());
+                }
+            }
+        }
+    }
+    ctrl_uds_sockets_.clear();
 }
 
 void App::signalHandler(int signum)

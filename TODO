@@ -31,19 +31,19 @@ The uds names in the mapping should match the client uds names defined earlier.
 
     <uds>
         <!-- app1 -->
-        <server>/tmp/app1.fsl1.dl.high.sock</server>
-        <server>/tmp/app1.fsl1.dl.low.sock</server>
-        <client name="app1.ul">/tmp/app1.fsl1.ul.sock</server>
+        <server>/tmp/app1.fsl.dl.high.sock</server>
+        <server>/tmp/app1.fsl.dl.low.sock</server>
+        <client name="app1.ul">/tmp/app1.fsl.ul.sock</server>
         
         <!-- app2 -->
-        <server>/tmp/app2.fsl1.dl.high.sock</server>
-        <server>/tmp/app2.fsl1.dl.low.sock</server>
-        <client name="app2.ul">/tmp/app2.fsl1.ul.sock</server>
+        <server>/tmp/app2.fsl.dl.high.sock</server>
+        <server>/tmp/app2.fsl.dl.low.sock</server>
+        <client name="app2.ul">/tmp/app2.fsl.ul.sock</server>
     </uds>
 
     <ul_uds_mapping>
-        <mapping opcode=1 uds="fsl1.app1.ul" />
-        <mapping opcode=2 uds="fsl1.app2.ul" />
+        <mapping opcode=1 uds="fsl.app1.ul" />
+        <mapping opcode=2 uds="fsl.app2.ul" />
     </ul_uds_mapping>
 
 </config>

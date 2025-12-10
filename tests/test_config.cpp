@@ -28,7 +28,7 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     REQUIRE(cfg.udp_remote_ip == "127.0.0.1");
     REQUIRE(cfg.udp_remote_port == 5678);
     REQUIRE(cfg.uds_servers.size() == 1);
-    REQUIRE(cfg.uds_servers[0] == "/tmp/test1.sock");
+    REQUIRE(cfg.uds_servers[0].path == "/tmp/test1.sock");
     REQUIRE(cfg.uds_clients.size() == 1);
     REQUIRE(cfg.uds_clients.at("test.ul") == "/tmp/test2.sock");
     REQUIRE(cfg.ul_uds_mapping.size() == 1);

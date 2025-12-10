@@ -53,9 +53,18 @@ AppConfig load_config(const char *filename)
             std::string tag = el->Name();
             if (tag == "server")
             {
-                const char *path = el->GetText();
-                if (path)
-                    config.uds_servers.push_back(path);
+                UdsServerConfig server_cfg;
+                XMLElement *path_el = el->FirstChildElement("path");
+                if (path_el && path_el->GetText())
+                    server_cfg.path = path_el->GetText();
+                XMLElement *buf_el = el->FirstChildElement("receive_buffer_size");
+                if (buf_el)
+                    buf_el->QueryIntText(&server_cfg.receive_buffer_size);
+                // Backward compatibility: allow <server>/path.sock</server>
+                if (server_cfg.path.empty() && el->GetText())
+                    server_cfg.path = el->GetText();
+                if (!server_cfg.path.empty())
+                    config.uds_servers.push_back(server_cfg);
             }
             else if (tag == "client")
             {
@@ -84,6 +93,38 @@ AppConfig load_config(const char *filename)
             {
                 config.ul_uds_mapping[static_cast<uint16_t>(opcode)] = uds_name;
             }
+        }
+    }
+
+    // --- Parse ctrl/status UDS for each app and tod ---
+    const char *ctrl_sections[] = {"app1", "app2", "tod"};
+    for (const char *section : ctrl_sections)
+    {
+        XMLElement *app_node = root->FirstChildElement(section);
+        if (app_node)
+        {
+            CtrlUdsConfig ctrl_cfg;
+            XMLElement *req = app_node->FirstChildElement("request");
+            if (req)
+            {
+                XMLElement *path = req->FirstChildElement("path");
+                if (path && path->GetText())
+                    ctrl_cfg.request_path = path->GetText();
+                XMLElement *buf = req->FirstChildElement("receive_buffer_size");
+                if (buf)
+                    buf->QueryIntText(&ctrl_cfg.request_buffer_size);
+            }
+            XMLElement *resp = app_node->FirstChildElement("response");
+            if (resp)
+            {
+                XMLElement *path = resp->FirstChildElement("path");
+                if (path && path->GetText())
+                    ctrl_cfg.response_path = path->GetText();
+                XMLElement *buf = resp->FirstChildElement("receive_buffer_size");
+                if (buf)
+                    buf->QueryIntText(&ctrl_cfg.response_buffer_size);
+            }
+            config.ctrl_uds[section] = ctrl_cfg;
         }
     }
 

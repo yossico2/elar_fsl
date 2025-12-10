@@ -24,6 +24,8 @@ class UdsSocket
 {
 public:
     UdsSocket(const std::string &my_path, const std::string &target_path);
+    // Set SO_RCVBUF for this socket (call before bindSocket)
+    bool setReceiveBufferSize(int size);
     ~UdsSocket();
 
     bool bindSocket();

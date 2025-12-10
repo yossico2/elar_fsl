@@ -83,13 +83,13 @@ The system is configured via an XML file. Example:
     </udp>
     <uds>
         <!-- app1 -->
-        <server>/tmp/app1.fsl1.dl.high.sock</server>
-        <server>/tmp/app1.fsl1.dl.low.sock</server>
-        <client name="app1.ul">/tmp/app1.fsl1.ul.sock</client>
+        <server>/tmp/app1.fsl.dl.high.sock</server>
+        <server>/tmp/app1.fsl.dl.low.sock</server>
+        <client name="app1.ul">/tmp/app1.fsl.ul.sock</client>
         <!-- app2 -->
-        <server>/tmp/app2.fsl1.dl.high.sock</server>
-        <server>/tmp/app2.fsl1.dl.low.sock</server>
-        <client name="app2.ul">/tmp/app2.fsl1.ul.sock</client>
+        <server>/tmp/app2.fsl.dl.high.sock</server>
+        <server>/tmp/app2.fsl.dl.low.sock</server>
+        <client name="app2.ul">/tmp/app2.fsl.ul.sock</client>
     </uds>
     <ul_uds_mapping>
         <mapping opcode="1" uds="app1.ul" />
@@ -126,7 +126,7 @@ Or use Python to send a packet with a specific opcode and payload.
 Send data to a UDS server socket:
 
 ```bash
-echo -n "payload" | socat - UNIX-SENDTO:/tmp/app1.fsl1.dl.high.sock
+echo -n "payload" | socat - UNIX-SENDTO:/tmp/app1.fsl.dl.high.sock
 ```
 FSL will send a UDP packet to the remote IP/port.
 

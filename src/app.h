@@ -39,5 +39,12 @@ private:
     std::vector<std::unique_ptr<UdsSocket>> uds_servers_;
     // Multiple UDS clients (uplink), mapped by name
     std::map<std::string, std::unique_ptr<UdsSocket>> uds_clients_;
+    // Ctrl/Status UDS sockets: app_name -> {request, response}
+    struct CtrlUdsSockets
+    {
+        std::unique_ptr<UdsSocket> request;
+        std::unique_ptr<UdsSocket> response;
+    };
+    std::map<std::string, CtrlUdsSockets> ctrl_uds_sockets_;
     static volatile sig_atomic_t shutdown_flag_;
 };

@@ -20,20 +20,38 @@
 #include <map>
 #include <cstdint>
 
+// Holds ctrl/status UDS paths for each app and tod
+struct CtrlUdsConfig
+{
+    std::string request_path;
+    int request_buffer_size = 0;
+    std::string response_path;
+    int response_buffer_size = 0;
+};
+
+struct UdsServerConfig
+{
+    std::string path;
+    int receive_buffer_size = 0;
+};
+
 struct AppConfig
 {
     int udp_local_port;        ///< Local UDP port for FSL
     std::string udp_remote_ip; ///< Remote IP address for UDP communication
     int udp_remote_port;       ///< Remote UDP port
 
-    // Downlink: UDS servers (one or more per app)
-    std::vector<std::string> uds_servers;
+    // Downlink: UDS servers (one or more per each app)
+    std::vector<UdsServerConfig> uds_servers;
 
     // Uplink: UDS clients (name -> path)
     std::map<std::string, std::string> uds_clients;
 
     // Uplink: opcode -> uds client name
     std::map<uint16_t, std::string> ul_uds_mapping;
+
+    // Ctrl/Status: app_name -> CtrlUdsConfig
+    std::map<std::string, CtrlUdsConfig> ctrl_uds;
 };
 
 AppConfig load_config(const char *filename); ///< Parses config.xml and returns AppConfig
