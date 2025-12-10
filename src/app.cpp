@@ -24,7 +24,20 @@
 #include <set>
 #include "icd.h"
 
+#include <thread>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <vector>
+
 volatile sig_atomic_t App::shutdown_flag_ = 0;
+
+constexpr size_t CTRL_QUEUE_MAX_SIZE = 32; // Adjust as needed
+std::queue<CtrlRequest> ctrl_queue_;
+std::mutex ctrl_queue_mutex_;
+std::condition_variable ctrl_queue_cv_;
+std::thread ctrl_worker_;
+bool ctrl_worker_running_ = true;
 
 App::App(const std::string &config_path)
     : config_(load_config(config_path.c_str())),
@@ -158,6 +171,22 @@ void App::run()
         std::cout << std::endl;
     }
 
+    // Start ctrl worker thread
+    ctrl_worker_running_ = true;
+    ctrl_worker_ = std::thread([this]
+                               {
+        while (ctrl_worker_running_) {
+            std::unique_lock<std::mutex> lock(ctrl_queue_mutex_);
+            ctrl_queue_cv_.wait(lock, [this]{ return !ctrl_queue_.empty() || !ctrl_worker_running_; });
+            while (!ctrl_queue_.empty()) {
+                CtrlRequest req = std::move(ctrl_queue_.front());
+                ctrl_queue_.pop();
+                lock.unlock();
+                processCtrlRequest(req);
+                lock.lock();
+            }
+        } });
+
     // --- Polling and routing logic ---
     // Layout: [0]=UDP, [1..N]=UDS servers, [N+1..]=ctrl_uds_sockets_ (request only)
     const size_t uds_count = uds_servers_.size();
@@ -286,7 +315,29 @@ void App::run()
                 if (n > 0)
                 {
                     std::cout << "[CTRL] Received request for '" << app_name << "', bytes=" << n << std::endl;
-                    // TODO: Route/process ctrl message as needed
+                    // Producer: enqueue ctrl request for worker thread
+                    CtrlRequest req;
+                    req.app_name = app_name;
+                    req.data.assign(buffer, buffer + n);
+                    bool queued = false;
+                    {
+                        std::lock_guard<std::mutex> lock(ctrl_queue_mutex_);
+                        if (ctrl_queue_.size() < CTRL_QUEUE_MAX_SIZE)
+                        {
+                            ctrl_queue_.push(std::move(req));
+                            queued = true;
+                        }
+                    }
+                    if (queued)
+                    {
+                        ctrl_queue_cv_.notify_one();
+                    }
+                    else
+                    {
+                        // Buffer full: handle error (log, respond, etc.)
+                        std::cerr << "[CTRL] Queue full, dropping request for '" << app_name << "'" << std::endl;
+                        // TODO: Optionally send FSL_CTRL_ERR_QUEUE_FULL response to client
+                    }
                 }
                 else if (n < 0)
                 {
@@ -298,6 +349,13 @@ void App::run()
 
     cleanup();
     std::cout << "[INFO] Graceful shutdown complete." << std::endl;
+}
+
+void App::processCtrlRequest(const CtrlRequest &req)
+{
+    // Actual ctrl message processing logic here
+    std::cout << "[CTRL-WORKER] Processing request for '" << req.app_name << "', bytes=" << req.data.size() << std::endl;
+    // TODO: Implement ctrl message handling
 }
 
 void App::cleanup()
@@ -368,11 +426,16 @@ void App::cleanup()
             }
         }
     }
-    ctrl_uds_sockets_.clear();
+
+    // Stop ctrl worker thread
+    ctrl_worker_running_ = false;
+    ctrl_queue_cv_.notify_one();
+
+    if (ctrl_worker_.joinable())
+        ctrl_worker_.join();
 }
 
 void App::signalHandler(int signum)
 {
-    std::cout << "\n[INFO] Signal " << signum << " received. Initiating graceful shutdown..." << std::endl;
     shutdown_flag_ = 1;
 }
