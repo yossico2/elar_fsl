@@ -10,7 +10,7 @@
         <remote_port>6000</remote_port>
     </udp>
     <!-- data uds -->
-    <uds>
+    <data_link_uds>
         <!-- for downlink: fsl is server -->
         <server>
             <path>/tmp/app1.fsl.dl.high.sock</path>
@@ -31,7 +31,7 @@
         <!-- for uplink: fsl is client -->
         <client name="app1.ul">/tmp/app1.fsl.ul.sock</client>
         <client name="app2.ul">/tmp/app2.fsl.ul.sock</client>
-    </uds>
+    </data_link_uds>
     <!-- uplink maping: opcode => application uds -->
     <!-- uds names must match client uds names above -->
     <ul_uds_mapping>
@@ -39,30 +39,32 @@
         <mapping opcode="2" uds="app2.ul" />
     </ul_uds_mapping>
     <!-- uds channels for apps to fsl ctrl/status -->
-    <app1>
-        <request>
-            <path>/tmp/app1_to_fsl.requests.sock</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </request>
-        <response>
-            <path>/tmp/fsl_to_app1.responses.sock</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </response>
-    </app1>
-    <app2>
-        <request>
-            <path>/tmp/app2_to_fsl.requests.sock</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </request>
-        <response>
-            <path>/tmp/fsl_to_app2.responses.sock</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </response>
-    </app2>
-    <tod>
-        <request>
-            <path>/tmp/app2_to_fsl.requests.sock</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </request>
-    </tod>
+    <ctrl_status_uds>
+        <app1>
+            <request>
+                <path>/tmp/app1_to_fsl.requests.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fsl_to_app1.responses.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </response>
+        </app1>
+        <app2>
+            <request>
+                <path>/tmp/app2_to_fsl.requests.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fsl_to_app2.responses.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </response>
+        </app2>
+        <tod>
+            <request>
+                <path>/tmp/app2_to_fsl.requests.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+        </tod>
+    </ctrl_status_uds>
 </config>

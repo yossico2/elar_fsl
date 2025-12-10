@@ -11,13 +11,25 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
         <remote_ip>127.0.0.1</remote_ip>
         <remote_port>5678</remote_port>
     </udp>
-    <uds>
+    <data_link_uds>
         <server>/tmp/test1.sock</server>
         <client name="test.ul">/tmp/test2.sock</client>
-    </uds>
+    </data_link_uds>
     <ul_uds_mapping>
         <mapping opcode="1" uds="test.ul" />
     </ul_uds_mapping>
+    <ctrl_status_uds>
+        <appx>
+            <request>
+                <path>/tmp/appx_to_fsl.requests.sock</path>
+                <receive_buffer_size>2048</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fsl_to_appx.responses.sock</path>
+                <receive_buffer_size>4096</receive_buffer_size>
+            </response>
+        </appx>
+    </ctrl_status_uds>
 </config>)";
     std::ofstream f("test_config.xml");
     f << xml;
@@ -33,5 +45,11 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     REQUIRE(cfg.uds_clients.at("test.ul") == "/tmp/test2.sock");
     REQUIRE(cfg.ul_uds_mapping.size() == 1);
     REQUIRE(cfg.ul_uds_mapping.at(1) == "test.ul");
+    REQUIRE(cfg.ctrl_uds.size() == 1);
+    REQUIRE(cfg.ctrl_uds.count("appx") == 1);
+    REQUIRE(cfg.ctrl_uds.at("appx").request_path == "/tmp/appx_to_fsl.requests.sock");
+    REQUIRE(cfg.ctrl_uds.at("appx").request_buffer_size == 2048);
+    REQUIRE(cfg.ctrl_uds.at("appx").response_path == "/tmp/fsl_to_appx.responses.sock");
+    REQUIRE(cfg.ctrl_uds.at("appx").response_buffer_size == 4096);
     remove("test_config.xml");
 }

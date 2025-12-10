@@ -44,8 +44,8 @@ AppConfig load_config(const char *filename)
         throw std::runtime_error("Missing <udp> section");
     }
 
-    // --- Parse UDS Settings ---
-    XMLElement *uds_node = root->FirstChildElement("uds");
+    // --- Parse Data Link UDS Settings ---
+    XMLElement *uds_node = root->FirstChildElement("data_link_uds");
     if (uds_node)
     {
         for (XMLElement *el = uds_node->FirstChildElement(); el != nullptr; el = el->NextSiblingElement())
@@ -77,7 +77,7 @@ AppConfig load_config(const char *filename)
     }
     else
     {
-        throw std::runtime_error("Missing <uds> section");
+        throw std::runtime_error("Missing <data_link_uds> section");
     }
 
     // --- Parse UL UDS Mapping ---
@@ -96,13 +96,13 @@ AppConfig load_config(const char *filename)
         }
     }
 
-    // --- Parse ctrl/status UDS for each app and tod ---
-    const char *ctrl_sections[] = {"app1", "app2", "tod"};
-    for (const char *section : ctrl_sections)
+    // --- Parse ctrl/status UDS for each app/tod under <ctrl_status> ---
+    XMLElement *ctrl_status_node = root->FirstChildElement("ctrl_status_uds");
+    if (ctrl_status_node)
     {
-        XMLElement *app_node = root->FirstChildElement(section);
-        if (app_node)
+        for (XMLElement *app_node = ctrl_status_node->FirstChildElement(); app_node != nullptr; app_node = app_node->NextSiblingElement())
         {
+            std::string section = app_node->Name();
             CtrlUdsConfig ctrl_cfg;
             XMLElement *req = app_node->FirstChildElement("request");
             if (req)

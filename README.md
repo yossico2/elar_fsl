@@ -81,26 +81,67 @@ The system is configured via an XML file. Example:
         <remote_ip>127.0.0.1</remote_ip>
         <remote_port>6000</remote_port>
     </udp>
-    <uds>
+    <data_link_uds>
         <!-- app1 -->
-        <server>/tmp/app1.fsl.dl.high.sock</server>
-        <server>/tmp/app1.fsl.dl.low.sock</server>
+        <server>
+            <path>/tmp/app1.fsl.dl.high.sock</path>
+            <receive_buffer_size>1024</receive_buffer_size>
+        </server>
+        <server>
+            <path>/tmp/app1.fsl.dl.low.sock</path>
+            <receive_buffer_size>1024</receive_buffer_size>
+        </server>
         <client name="app1.ul">/tmp/app1.fsl.ul.sock</client>
         <!-- app2 -->
-        <server>/tmp/app2.fsl.dl.high.sock</server>
-        <server>/tmp/app2.fsl.dl.low.sock</server>
+        <server>
+            <path>/tmp/app2.fsl.dl.high.sock</path>
+            <receive_buffer_size>1024</receive_buffer_size>
+        </server>
+        <server>
+            <path>/tmp/app2.fsl.dl.low.sock</path>
+            <receive_buffer_size>1024</receive_buffer_size>
+        </server>
         <client name="app2.ul">/tmp/app2.fsl.ul.sock</client>
-    </uds>
+    </data_link_uds>
     <ul_uds_mapping>
         <mapping opcode="1" uds="app1.ul" />
         <mapping opcode="2" uds="app2.ul" />
     </ul_uds_mapping>
+    <ctrl_status_uds>
+        <app1>
+            <request>
+                <path>/tmp/app1_to_fsl.requests.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fsl_to_app1.responses.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </response>
+        </app1>
+        <app2>
+            <request>
+                <path>/tmp/app2_to_fsl.requests.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fsl_to_app2.responses.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </response>
+        </app2>
+        <tod>
+            <request>
+                <path>/tmp/app2_to_fsl.requests.sock</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+        </tod>
+    </ctrl_status_uds>
 </config>
 ```
 
 - `<udp>`: UDP socket configuration for FSL.
-- `<uds>`: UDS server sockets (downlink) and client sockets (uplink) for each app.
+- `<data_link_uds>`: UDS server sockets (downlink) and client sockets (uplink) for each app.
 - `<ul_uds_mapping>`: Maps message opcodes to UDS client names for routing uplink messages.
+- `<ctrl_status_uds>`: Contains ctrl/status UDS channels for each app or logical entity. Each child element (e.g., `<app1>`, `<app2>`, `<tod>`) defines request and/or response UDS sockets for control and status communication between the app and FSL. Each `<request>` or `<response>` can specify a `<path>` and an optional `<receive_buffer_size>`. This section is parsed dynamically, so you can add or remove app sections as needed.
 
 ## Running the System
 
