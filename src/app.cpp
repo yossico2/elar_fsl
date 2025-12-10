@@ -159,19 +159,15 @@ void App::run()
     }
 
     // --- Polling and routing logic ---
-    // Layout: [0]=UDP, [1..N]=UDS servers, [N+1..]=ctrl_uds_sockets_ (request/response)
+    // Layout: [0]=UDP, [1..N]=UDS servers, [N+1..]=ctrl_uds_sockets_ (request only)
     const size_t uds_count = uds_servers_.size();
-    const size_t ctrl_count = ctrl_uds_sockets_.size();
-    // Each ctrl_uds_sockets_ entry can have up to 2 sockets (request, response)
-    std::vector<std::pair<std::string, std::string>> ctrl_keys; // (app_name, "request"/"response")
+    std::vector<std::string> ctrl_apps;
     for (const auto &entry : ctrl_uds_sockets_)
     {
         if (entry.second.request)
-            ctrl_keys.emplace_back(entry.first, "request");
-        if (entry.second.response)
-            ctrl_keys.emplace_back(entry.first, "response");
+            ctrl_apps.push_back(entry.first);
     }
-    const size_t nfds = 1 + uds_count + ctrl_keys.size();
+    const size_t nfds = 1 + uds_count + ctrl_apps.size();
     std::vector<pollfd> fds(nfds);
     // UDP socket
     fds[0].fd = udp_.getFd();
@@ -182,16 +178,14 @@ void App::run()
         fds[1 + i].fd = uds_servers_[i]->getFd();
         fds[1 + i].events = POLLIN;
     }
-    // ctrl_uds_sockets_ (request/response)
-    for (size_t i = 0; i < ctrl_keys.size(); ++i)
+    // ctrl_uds_sockets_ (request only)
+    for (size_t i = 0; i < ctrl_apps.size(); ++i)
     {
-        const auto &key = ctrl_keys[i];
-        const auto &sockets = ctrl_uds_sockets_.at(key.first);
+        const auto &app_name = ctrl_apps[i];
+        const auto &sockets = ctrl_uds_sockets_.at(app_name);
         int fd = -1;
-        if (key.second == "request" && sockets.request)
+        if (sockets.request)
             fd = sockets.request->getFd();
-        if (key.second == "response" && sockets.response)
-            fd = sockets.response->getFd();
         fds[1 + uds_count + i].fd = fd;
         fds[1 + uds_count + i].events = POLLIN;
     }
@@ -278,32 +272,21 @@ void App::run()
             }
         }
 
-        // --- ctrl_uds_sockets_ (request/response) handlers ---
-        for (size_t i = 0; i < ctrl_keys.size(); ++i)
+        // --- ctrl_uds_sockets_ (request only) handlers ---
+        for (size_t i = 0; i < ctrl_apps.size(); ++i)
         {
             if (fds[1 + uds_count + i].revents & POLLIN)
             {
-                const auto &key = ctrl_keys[i];
-                const std::string &app_name = key.first;
-                const std::string &type = key.second; // "request" or "response"
-                // TODO: Implement ctrl/status message handling for app_name/type
-                int n = 0;
-                if (type == "request")
-                {
-                    n = ctrl_uds_sockets_[app_name].request->receive(buffer, sizeof(buffer));
-                }
-                else if (type == "response")
-                {
-                    n = ctrl_uds_sockets_[app_name].response->receive(buffer, sizeof(buffer));
-                }
+                const std::string &app_name = ctrl_apps[i];
+                int n = ctrl_uds_sockets_[app_name].request->receive(buffer, sizeof(buffer));
                 if (n > 0)
                 {
-                    std::cout << "[CTRL] Received " << type << " for '" << app_name << "', bytes=" << n << std::endl;
-                    // TODO: Route/process ctrl/status message as needed
+                    std::cout << "[CTRL] Received request for '" << app_name << "', bytes=" << n << std::endl;
+                    // TODO: Route/process ctrl message as needed
                 }
                 else if (n < 0)
                 {
-                    std::cerr << "[CTRL] Failed to receive " << type << " for '" << app_name << "'" << std::endl;
+                    std::cerr << "[CTRL] Failed to receive request for '" << app_name << "'" << std::endl;
                 }
             }
         }
