@@ -28,15 +28,25 @@
             <path>/tmp/DL_APP2_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
+        <server>
+            <path>/tmp/DL_APP3_H</path>
+            <receive_buffer_size>1024</receive_buffer_size>
+        </server>
+        <server>
+            <path>/tmp/DL_APP3_L</path>
+            <receive_buffer_size>1024</receive_buffer_size>
+        </server>
         <!-- for uplink: fsl is client -->
         <client name="app1.ul">/tmp/UL_APP1</client>
         <client name="app2.ul">/tmp/UL_APP2</client>
+        <client name="app3.ul">/tmp/UL_APP3</client>
     </data_link_uds>
     <!-- uplink maping: opcode => application uds -->
     <!-- uds names must match client uds names above -->
     <ul_uds_mapping>
         <mapping opcode="1" uds="app1.ul" />
         <mapping opcode="2" uds="app2.ul" />
+        <mapping opcode="3" uds="app3.ul" />
     </ul_uds_mapping>
     <!-- uds channels for apps to fsl ctrl/status -->
     <ctrl_status_uds>
@@ -47,7 +57,6 @@
             </request>
             <response>
                 <path>/tmp/fcom_to_app1</path>
-                <receive_buffer_size>1024</receive_buffer_size>
             </response>
         </app1>
         <app2>
@@ -57,7 +66,6 @@
             </request>
             <response>
                 <path>/tmp/fcom_to_app2</path>
-                <receive_buffer_size>1024</receive_buffer_size>
             </response>
         </app2>
         <tod>
@@ -66,5 +74,14 @@
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
         </tod>
+        <app3>
+            <request>
+                <path>/tmp/app3_to_fcom</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fcom_to_app3</path>
+            </response>
+        </app3>
     </ctrl_status_uds>
 </config>
