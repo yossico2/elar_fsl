@@ -54,20 +54,27 @@ def test_udp_to_uds():
     """Test: GSL sends UDP, FSL routes to correct UDS client."""
     fsl_udp_ip = "127.0.0.1"
     fsl_udp_port = 9910
-    uds_client_path = "/tmp/UL_APP1"
-    opcode = 1
-    payload = "hello_from_gsl"
-    # Start UDS receiver (app) in a thread BEFORE sending UDP
-    result = []
-    t = threading.Thread(target=uds_receiver_thread, args=(uds_client_path, result))
-    t.start()
-    time.sleep(0.5)  # Give receiver time to bind
-    print("Sending UDP to FSL...")
-    send_udp_to_fcom(opcode, payload, fsl_udp_ip, fsl_udp_port)
-    t.join()
-    received = result[0] if result else None
-    assert received is not None, "No data received on UDS client socket"
-    print("Received:", received)
+    app_uds_clients = [
+        "/tmp/UL_APP1",
+        "/tmp/UL_APP2",
+        "/tmp/UL_APP3",
+        # Add more uplink UDS client paths as needed
+    ]
+    for i, uds_client_path in enumerate(app_uds_clients, start=1):
+        opcode = i  # Use different opcode for each app if needed
+        payload = f"hello_from_gsl_{i}"
+        result = []
+        t = threading.Thread(target=uds_receiver_thread, args=(uds_client_path, result))
+        t.start()
+        time.sleep(0.5)  # Give receiver time to bind
+        print(f"Sending UDP to FSL for {uds_client_path}...")
+        send_udp_to_fcom(opcode, payload, fsl_udp_ip, fsl_udp_port)
+        t.join()
+        received = result[0] if result else None
+        assert (
+            received is not None
+        ), f"No data received on UDS client socket {uds_client_path}"
+        print(f"Received on {uds_client_path}:", received)
 
 
 def test_uds_to_udp():
@@ -81,7 +88,7 @@ def test_uds_to_udp():
         # Add more app UDS paths as needed
     ]
     for i, uds_server_path in enumerate(app_uds_paths, start=1):
-        payload = f"hello_from_app{i}"
+        payload = f"downlink message from app{i}"
         # Start UDP receiver (GSL)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind((gcom_udp_ip, gcom_udp_port))
