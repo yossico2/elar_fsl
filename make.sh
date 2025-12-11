@@ -16,7 +16,7 @@ function main() {
 	BUILD_DIR="build-debug"
 	TARGET="linux"
 
-	# Handle positional arguments (clean, test, all)
+	# Handle positional arguments (clean, test, all, image)
 	if [[ "$1" == "clean" ]]; then
 		echo -e "\e[97;44mCleaning build folders...\e[0m"
 		rm -rf build-debug build-release
@@ -49,6 +49,11 @@ function main() {
 			exit $INTEGRATION_STATUS
 		fi
 		echo -e "\e[32mTest run completed successfully.\e[0m"
+		exit 0
+	elif [[ "$1" == "image" ]]; then
+		echo -e "\e[97;44mBuilding Docker image...\e[0m"
+		docker build -t fsl .
+		echo -e "\e[32mDocker image build completed.\e[0m"
 		exit 0
 	elif [[ "$1" == "all" ]]; then
 		"$0" clean
