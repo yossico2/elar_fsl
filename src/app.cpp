@@ -149,6 +149,88 @@ App::App(const std::string &config_path)
     }
 }
 
+void App::cleanup()
+{
+    // Close UDP socket
+    // (UdpServerSocket destructor will close fd_)
+
+    // Close and unlink UDS server sockets
+    for (auto &server : uds_servers_)
+    {
+        const std::string &path = server->getMyPath();
+        server.reset(); // Close socket
+        if (!path.empty())
+        {
+            if (unlink(path.c_str()) == 0)
+            {
+                std::cout << "[INFO] Unlinked UDS file: " << path << std::endl;
+            }
+            else
+            {
+                perror(("[WARN] Failed to unlink UDS file: " + path).c_str());
+            }
+        }
+    }
+    uds_servers_.clear();
+
+    // Close UDS client sockets
+    for (auto &client : uds_clients_)
+    {
+        client.second.reset();
+    }
+    uds_clients_.clear();
+
+    // Close and unlink ctrl/status UDS sockets
+    for (auto &entry : ctrl_uds_sockets_)
+    {
+        auto &sockets = entry.second;
+        if (sockets.request)
+        {
+            const std::string &path = sockets.request->getMyPath();
+            sockets.request.reset();
+            if (!path.empty())
+            {
+                if (unlink(path.c_str()) == 0)
+                {
+                    std::cout << "[INFO] Unlinked ctrl request UDS file: " << path << std::endl;
+                }
+                else
+                {
+                    perror(("[WARN] Failed to unlink ctrl request UDS file: " + path).c_str());
+                }
+            }
+        }
+        if (sockets.response)
+        {
+            const std::string &path = sockets.response->getMyPath();
+            sockets.response.reset();
+            if (!path.empty())
+            {
+                if (unlink(path.c_str()) == 0)
+                {
+                    std::cout << "[INFO] Unlinked ctrl response UDS file: " << path << std::endl;
+                }
+                else
+                {
+                    perror(("[WARN] Failed to unlink ctrl response UDS file: " + path).c_str());
+                }
+            }
+        }
+    }
+
+    // Stop ctrl worker thread
+    ctrl_worker_running_ = false;
+    ctrl_queue_cv_.notify_one();
+
+    if (ctrl_worker_.joinable())
+        ctrl_worker_.join();
+}
+
+void App::signalHandler(int signum)
+{
+    shutdown_flag_ = 1;
+}
+
 void App::run()
 {
     std::cout << "App Service Running (XML Config).\n"
@@ -173,7 +255,7 @@ void App::run()
         std::cout << std::endl;
     }
 
-    // Start ctrl worker thread
+    // === Start ctrl worker thread
     ctrl_worker_running_ = true;
     ctrl_worker_ = std::thread([this]
                                {
@@ -189,7 +271,7 @@ void App::run()
             }
         } });
 
-    // --- Polling and routing logic ---
+    // === Polling and routing logic ---
     // Layout: [0]=UDP, [1..N]=UDS servers, [N+1..]=ctrl_uds_sockets_ (request only)
     const size_t uds_count = uds_servers_.size();
     std::vector<std::string> ctrl_apps;
@@ -213,7 +295,7 @@ void App::run()
         fds[1 + i].events = POLLIN;
     }
 
-    // ctrl_uds_sockets_ (request only)
+    // ctrl_uds_sockets_ (requests only)
     for (size_t i = 0; i < ctrl_apps.size(); ++i)
     {
         const auto &app_name = ctrl_apps[i];
@@ -246,7 +328,7 @@ void App::run()
             if (n >= (int)sizeof(GslFslHeader))
             {
                 const GslFslHeader *hdr = reinterpret_cast<const GslFslHeader *>(buffer);
-                uint16_t opcode = hdr->opcode;
+                uint16_t opcode = hdr->opcode; // opcode is actually destination for uplink
                 std::map<uint16_t, std::string>::const_iterator map_it = config_.ul_uds_mapping.find(opcode);
                 if (map_it != config_.ul_uds_mapping.end())
                 {
@@ -357,87 +439,5 @@ void App::processCtrlRequest(const CtrlRequest &req)
 {
     // Actual ctrl message processing logic here
     std::cout << "[CTRL-WORKER] Processing request for '" << req.app_name << "', bytes=" << req.data.size() << std::endl;
-    // TODO: Implement ctrl message handling
-}
-
-void App::cleanup()
-{
-    // Close UDP socket
-    // (UdpServerSocket destructor will close fd_)
-
-    // Close and unlink UDS server sockets
-    for (auto &server : uds_servers_)
-    {
-        const std::string &path = server->getMyPath();
-        server.reset(); // Close socket
-        if (!path.empty())
-        {
-            if (unlink(path.c_str()) == 0)
-            {
-                std::cout << "[INFO] Unlinked UDS file: " << path << std::endl;
-            }
-            else
-            {
-                perror(("[WARN] Failed to unlink UDS file: " + path).c_str());
-            }
-        }
-    }
-    uds_servers_.clear();
-
-    // Close UDS client sockets
-    for (auto &client : uds_clients_)
-    {
-        client.second.reset();
-    }
-    uds_clients_.clear();
-
-    // Close and unlink ctrl/status UDS sockets
-    for (auto &entry : ctrl_uds_sockets_)
-    {
-        auto &sockets = entry.second;
-        if (sockets.request)
-        {
-            const std::string &path = sockets.request->getMyPath();
-            sockets.request.reset();
-            if (!path.empty())
-            {
-                if (unlink(path.c_str()) == 0)
-                {
-                    std::cout << "[INFO] Unlinked ctrl request UDS file: " << path << std::endl;
-                }
-                else
-                {
-                    perror(("[WARN] Failed to unlink ctrl request UDS file: " + path).c_str());
-                }
-            }
-        }
-        if (sockets.response)
-        {
-            const std::string &path = sockets.response->getMyPath();
-            sockets.response.reset();
-            if (!path.empty())
-            {
-                if (unlink(path.c_str()) == 0)
-                {
-                    std::cout << "[INFO] Unlinked ctrl response UDS file: " << path << std::endl;
-                }
-                else
-                {
-                    perror(("[WARN] Failed to unlink ctrl response UDS file: " + path).c_str());
-                }
-            }
-        }
-    }
-
-    // Stop ctrl worker thread
-    ctrl_worker_running_ = false;
-    ctrl_queue_cv_.notify_one();
-
-    if (ctrl_worker_.joinable())
-        ctrl_worker_.join();
-}
-
-void App::signalHandler(int signum)
-{
-    shutdown_flag_ = 1;
+    // lilo:TODO: Implement ctrl message handling
 }
