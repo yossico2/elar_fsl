@@ -67,14 +67,14 @@ def test_udp_to_uds():
         t = threading.Thread(target=uds_receiver_thread, args=(uds_client_path, result))
         t.start()
         time.sleep(0.5)  # Give receiver time to bind
-        print(f"Sending UDP to FSL for {uds_client_path}...")
+        print(f"Uplink: sending UDP to FSL for {uds_client_path}...")
         send_udp_to_fcom(opcode, payload, fsl_udp_ip, fsl_udp_port)
         t.join()
         received = result[0] if result else None
         assert (
             received is not None
         ), f"No data received on UDS client socket {uds_client_path}"
-        print(f"Received on {uds_client_path}:", received)
+        print(f"Uplink: received on {uds_client_path}:", received)
 
 
 def test_uds_to_udp():
@@ -88,17 +88,17 @@ def test_uds_to_udp():
         # Add more app UDS paths as needed
     ]
     for i, uds_server_path in enumerate(app_uds_paths, start=1):
-        payload = f"downlink message from app{i}"
+        payload = f"hello from app{i}"
         # Start UDP receiver (GSL)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind((gcom_udp_ip, gcom_udp_port))
         s.settimeout(2)
-        print(f"Sending to UDS server {uds_server_path}...")
+        print(f"Downlink: sending message to UDS server {uds_server_path}...")
         send_uds_to_fcom(uds_server_path, payload)
-        print("Receiving from UDP...")
+        print("Downlink: receiving message from UDP...")
         try:
             data, addr = s.recvfrom(4096)
-            print("Received from UDP:", data)
+            print("Downlink: received message from UDP:", data)
             assert data is not None, f"No UDP data received for {uds_server_path}"
         except socket.timeout:
             print(f"No UDP data received for {uds_server_path}")
