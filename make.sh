@@ -4,10 +4,11 @@ set -e
 
 function main() {
 	print_usage() {
-		echo "Usage: $0 [clean|test|all] [-b|--build debug|release] [-t|--target linux|petalinux] [-h|--help]"
+		echo "Usage: $0 [clean|test|all|image] [-b|--build debug|release] [-t|--target linux|petalinux] [-h|--help]"
 		echo "  clean         Remove build-debug and build-release folders"
 		echo "  test          Run unit and integration tests"
 		echo "  all           Run clean, build, and test"
+		echo "  image         Build the Docker image (fsl-app)"
 		echo "  -b, --build   Build type: debug (default) or release"
 		echo "  -t, --target  Target platform: linux (default) or petalinux"
 		echo "  -h, --help    Show this help message"

@@ -2,6 +2,17 @@
 # Run FSL in a Docker container with host networking
 set -e
 
+print_usage() {
+	echo "Usage: $0 [instance] [-d]"
+	echo "  instance    Instance number (default: 1)"
+	echo "  -d          Run container in detached mode (can be before or after instance)"
+}
+
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+	print_usage
+	exit 0
+fi
+
 function main() {
 	detach=""
 	instance=1
