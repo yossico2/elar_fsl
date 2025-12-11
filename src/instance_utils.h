@@ -14,6 +14,12 @@ inline int get_instance_from_args_env(int argc, char *argv[])
             instance = std::atoi(argv[i + 1]);
             break;
         }
+        // Accept a single positional integer argument
+        if (instance == 0 && argc == 2 && std::atoi(argv[1]) > 0)
+        {
+            instance = std::atoi(argv[1]);
+            break;
+        }
     }
     // If not set, check env
     if (instance == 0)
