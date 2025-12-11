@@ -23,6 +23,12 @@ def send_udp_to_fcom(opcode, payload, udp_ip, udp_port):
 
 def send_uds_to_fcom(uds_path, payload):
     """Simulate app: Send payload to FSL UDS server socket."""
+    # Ensure parent directory exists if SENSOR_INSTANCE is set
+    instance = os.environ.get("SENSOR_INSTANCE")
+    if instance:
+        parent = os.path.dirname(uds_path)
+        if not os.path.exists(parent):
+            os.makedirs(parent, exist_ok=True)
     s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     s.sendto(payload.encode(), uds_path)
     s.close()
@@ -30,6 +36,12 @@ def send_uds_to_fcom(uds_path, payload):
 
 def receive_uds(uds_path, timeout=2):
     """Simulate app: Receive from FSL UDS client socket."""
+    # Ensure parent directory exists if SENSOR_INSTANCE is set
+    instance = os.environ.get("SENSOR_INSTANCE")
+    if instance:
+        parent = os.path.dirname(uds_path)
+        if not os.path.exists(parent):
+            os.makedirs(parent, exist_ok=True)
     if os.path.exists(uds_path):
         os.unlink(uds_path)
     s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
@@ -54,10 +66,12 @@ def test_udp_to_uds():
     """Test: GSL sends UDP, FSL routes to correct UDS client."""
     fsl_udp_ip = "127.0.0.1"
     fsl_udp_port = 9910
+    instance = int(os.environ.get("SENSOR_INSTANCE", "0"))
+    prefix = f"/tmp/sensor{instance}/" if instance > 0 else "/tmp/"
     app_uds_clients = [
-        "/tmp/UL_APP1",
-        "/tmp/UL_APP2",
-        "/tmp/UL_APP3",
+        prefix + "UL_APP1",
+        prefix + "UL_APP2",
+        prefix + "UL_APP3",
         # Add more uplink UDS client paths as needed
     ]
     for i, uds_client_path in enumerate(app_uds_clients, start=1):
@@ -81,10 +95,12 @@ def test_uds_to_udp():
     """Test: App sends to UDS server, FSL routes to UDP (GSL)."""
     gcom_udp_ip = "127.0.0.1"
     gcom_udp_port = 9010
+    instance = int(os.environ.get("SENSOR_INSTANCE", "0"))
+    prefix = f"/tmp/sensor{instance}/" if instance > 0 else "/tmp/"
     app_uds_paths = [
-        "/tmp/DL_APP1_H",
-        "/tmp/DL_APP2_H",
-        "/tmp/DL_APP3_H",
+        prefix + "DL_APP1_H",
+        prefix + "DL_APP2_H",
+        prefix + "DL_APP3_H",
         # Add more app UDS paths as needed
     ]
     for i, uds_server_path in enumerate(app_uds_paths, start=1):

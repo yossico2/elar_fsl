@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <cstring>
 #include <stdexcept>
+#include <sys/stat.h>
 
 #include <sys/socket.h>
 
@@ -62,6 +63,20 @@ UdsSocket::~UdsSocket()
 
 bool UdsSocket::bindSocket()
 {
+    // Ensure parent directory exists if path is not empty and is not abstract socket
+    if (!my_path_.empty() && my_path_[0] == '/')
+    {
+        size_t last_slash = my_path_.find_last_of('/');
+        if (last_slash != std::string::npos && last_slash > 0)
+        {
+            std::string parent = my_path_.substr(0, last_slash);
+            struct stat st = {0};
+            if (stat(parent.c_str(), &st) == -1)
+            {
+                mkdir(parent.c_str(), 0777);
+            }
+        }
+    }
     unlink(my_path_.c_str());
     if (bind(fd_, (struct sockaddr *)&server_addr_, sizeof(server_addr_)) < 0)
     {

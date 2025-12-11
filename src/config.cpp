@@ -9,7 +9,7 @@
 
 using namespace tinyxml2;
 
-AppConfig load_config(const char *filename)
+AppConfig load_config(const char *filename, int instance)
 {
     XMLDocument doc;
     XMLError result = doc.LoadFile(filename);
@@ -139,5 +139,40 @@ AppConfig load_config(const char *filename)
         config.udp_remote_port = std::atoi(env);
     }
 
+    // If instance > 0, rewrite UDS paths
+    if (instance > 0)
+    {
+        auto prefix = std::string("/tmp/sensor") + std::to_string(instance) + "/";
+        // UDS servers
+        for (auto &server : config.uds_servers)
+        {
+            if (!server.path.empty() && server.path.rfind("/tmp/", 0) == 0)
+            {
+                // Replace /tmp/ with /tmp/sensor{instance}/
+                server.path = prefix + server.path.substr(5);
+            }
+        }
+        // UDS clients
+        for (auto &client : config.uds_clients)
+        {
+            if (!client.second.empty() && client.second.rfind("/tmp/", 0) == 0)
+            {
+                client.second = prefix + client.second.substr(5);
+            }
+        }
+        // Ctrl/Status UDS
+        for (auto &entry : config.ctrl_uds)
+        {
+            auto &ctrl_cfg = entry.second;
+            if (!ctrl_cfg.request_path.empty() && ctrl_cfg.request_path.rfind("/tmp/", 0) == 0)
+            {
+                ctrl_cfg.request_path = prefix + ctrl_cfg.request_path.substr(5);
+            }
+            if (!ctrl_cfg.response_path.empty() && ctrl_cfg.response_path.rfind("/tmp/", 0) == 0)
+            {
+                ctrl_cfg.response_path = prefix + ctrl_cfg.response_path.substr(5);
+            }
+        }
+    }
     return config;
 }
