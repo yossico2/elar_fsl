@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <set>
 #include "icd.h"
+#include "logger.h"
 
 #include <thread>
 #include <queue>
@@ -60,9 +61,7 @@ App::App(const AppConfig &config)
     {
         const std::string &uds_name = mapping.second;
         if (config_.uds_clients.find(uds_name) == config_.uds_clients.end())
-        {
-            std::cerr << "[CONFIG ERROR] UDS mapping name '" << uds_name << "' (opcode " << mapping.first << ") does not exist in <client> list." << std::endl;
-        }
+            Logger::error("UDS mapping name '" + uds_name + "' (opcode " + std::to_string(mapping.first) + ") does not exist in <client> list.");
     }
 
     // 2. Ensure all UDS server/client paths are non-empty and unique
@@ -70,25 +69,17 @@ App::App(const AppConfig &config)
     for (const auto &server : config_.uds_servers)
     {
         if (server.path.empty())
-        {
-            std::cerr << "[CONFIG ERROR] UDS server path is empty." << std::endl;
-        }
+            Logger::error("UDS server path is empty.");
         if (!uds_paths.insert(server.path).second)
-        {
-            std::cerr << "[CONFIG ERROR] Duplicate UDS server path: '" << server.path << "'" << std::endl;
-        }
+            Logger::error("Duplicate UDS server path: '" + server.path + "'");
     }
 
     for (const auto &client : config_.uds_clients)
     {
         if (client.second.empty())
-        {
-            std::cerr << "[CONFIG ERROR] UDS client '" << client.first << "' path is empty." << std::endl;
-        }
+            Logger::error("UDS client '" + client.first + "' path is empty.");
         if (!uds_paths.insert(client.second).second)
-        {
-            std::cerr << "[CONFIG ERROR] Duplicate UDS client path: '" << client.second << "' (name: " << client.first << ")" << std::endl;
-        }
+            Logger::error("Duplicate UDS client path: '" + client.second + "' (name: " + client.first + ")");
     }
 
     // Create and bind all UDS servers (downlink)
@@ -162,13 +153,9 @@ void App::cleanup()
         if (!path.empty())
         {
             if (unlink(path.c_str()) == 0)
-            {
-                std::cout << "[INFO] Unlinked UDS file: " << path << std::endl;
-            }
+                Logger::info("Unlinked UDS file: " + path);
             else
-            {
-                perror(("[WARN] Failed to unlink UDS file: " + path).c_str());
-            }
+                Logger::error("Failed to unlink UDS file: " + path + " (" + ::strerror(errno) + ")");
         }
     }
     uds_servers_.clear();
@@ -191,13 +178,9 @@ void App::cleanup()
             if (!path.empty())
             {
                 if (unlink(path.c_str()) == 0)
-                {
-                    std::cout << "[INFO] Unlinked ctrl request UDS file: " << path << std::endl;
-                }
+                    Logger::info("Unlinked ctrl request UDS file: " + path);
                 else
-                {
-                    perror(("[WARN] Failed to unlink ctrl request UDS file: " + path).c_str());
-                }
+                    Logger::error("Failed to unlink ctrl request UDS file: " + path + " (" + ::strerror(errno) + ")");
             }
         }
         if (sockets.response)
@@ -207,13 +190,9 @@ void App::cleanup()
             if (!path.empty())
             {
                 if (unlink(path.c_str()) == 0)
-                {
-                    std::cout << "[INFO] Unlinked ctrl response UDS file: " << path << std::endl;
-                }
+                    Logger::info("Unlinked ctrl response UDS file: " + path);
                 else
-                {
-                    perror(("[WARN] Failed to unlink ctrl response UDS file: " + path).c_str());
-                }
+                    Logger::error("Failed to unlink ctrl response UDS file: " + path + " (" + ::strerror(errno) + ")");
             }
         }
     }
@@ -233,27 +212,28 @@ void App::signalHandler(int signum)
 
 void App::run()
 {
-    std::cout << "App Service Running (XML Config).\n"
-              << "UDP: " << config_.udp_local_port << " <-> " << config_.udp_remote_ip << ":" << config_.udp_remote_port << std::endl;
-    std::cout << "UDS Servers (downlink):\n";
+    Logger::info("App Service Running (XML Config). UDP: " + std::to_string(config_.udp_local_port) + " <-> " + config_.udp_remote_ip + ":" + std::to_string(config_.udp_remote_port));
+    std::string uds_servers_list = "UDS Servers (downlink):\n";
     for (const auto &s : config_.uds_servers)
-        std::cout << "  " << s.path << std::endl;
-    std::cout << "UDS Clients (uplink):\n";
+        uds_servers_list += "  " + s.path + "\n";
+    Logger::info(uds_servers_list);
+    std::string uds_clients_list = "UDS Clients (uplink):\n";
     for (const auto &entry : config_.uds_clients)
-        std::cout << "  " << entry.first << ": " << entry.second << std::endl;
-
-    std::cout << "Ctrl/Status UDS:\n";
+        uds_clients_list += "  " + entry.first + ": " + entry.second + "\n";
+    Logger::info(uds_clients_list);
+    std::string ctrl_status_uds = "Ctrl/Status UDS:\n";
     for (const auto &entry : config_.ctrl_uds)
     {
         const std::string &app = entry.first;
         const CtrlUdsConfig &c = entry.second;
-        std::cout << "  [" << app << "]";
+        ctrl_status_uds += "  [" + app + "]";
         if (!c.request_path.empty())
-            std::cout << " request: " << c.request_path;
+            ctrl_status_uds += " request: " + c.request_path;
         if (!c.response_path.empty())
-            std::cout << " response: " << c.response_path;
-        std::cout << std::endl;
+            ctrl_status_uds += " response: " + c.response_path;
+        ctrl_status_uds += "\n";
     }
+    Logger::info(ctrl_status_uds);
 
     // === Start ctrl worker thread
     ctrl_worker_running_ = true;
@@ -315,7 +295,7 @@ void App::run()
         int ret = poll(fds.data(), nfds, -1);
         if (ret < 0)
         {
-            perror("Poll failed");
+            Logger::error(std::string("Poll failed: ") + ::strerror(errno));
             break;
         }
 
@@ -340,21 +320,21 @@ void App::run()
                         ssize_t sent = client_it->second->send(buffer + sizeof(GslFslHeader), n - sizeof(GslFslHeader));
                         if (sent < 0)
                         {
-                            std::cerr << "[ERROR] Failed to send to UDS client '" << uds_name << "' (opcode: " << opcode << ")" << std::endl;
+                            Logger::error("Failed to send to UDS client '" + uds_name + "' (opcode: " + std::to_string(opcode) + ")");
                         }
                         else
                         {
-                            std::cout << "[LOG] Routed UDP->UDS: opcode=" << opcode << ", bytes=" << sent << ", dest='" << uds_name << "'" << std::endl;
+                            Logger::info("Routed UDP->UDS: opcode=" + std::to_string(opcode) + ", bytes=" + std::to_string(sent) + ", dest='" + uds_name + "'");
                         }
                     }
                     else
                     {
-                        std::cerr << "No UDS client found for name: " << uds_name << std::endl;
+                        Logger::error("No UDS client found for name: " + uds_name);
                     }
                 }
                 else
                 {
-                    std::cerr << "[ERROR] No UDS mapping for opcode: " << opcode << std::endl;
+                    Logger::error("No UDS mapping for opcode: " + std::to_string(opcode));
                 }
             }
         }
@@ -375,16 +355,16 @@ void App::run()
                     ssize_t sent = udp_.send(buffer, n + sizeof(GslFslHeader));
                     if (sent < 0)
                     {
-                        std::cerr << "[ERROR] Failed to send UDP packet from UDS server index " << i << std::endl;
+                        Logger::error("Failed to send UDP packet from UDS server index " + std::to_string(i));
                     }
                     else
                     {
-                        std::cout << "[LOG] Routed UDS->UDP: bytes=" << sent << ", src='" << uds_servers_[i]->getMyPath() << "'" << std::endl;
+                        Logger::info("Routed UDS->UDP: bytes=" + std::to_string(sent) + ", src='" + uds_servers_[i]->getMyPath() + "'");
                     }
                 }
                 else if (n < 0)
                 {
-                    std::cerr << "[ERROR] Failed to receive from UDS server index " << i << std::endl;
+                    Logger::error("Failed to receive from UDS server index " + std::to_string(i));
                 }
             }
         }
@@ -398,7 +378,7 @@ void App::run()
                 int n = ctrl_uds_sockets_[app_name].request->receive(buffer, sizeof(buffer));
                 if (n > 0)
                 {
-                    std::cout << "[CTRL] Received request for '" << app_name << "', bytes=" << n << std::endl;
+                    Logger::info("[CTRL] Received request for '" + app_name + "', bytes=" + std::to_string(n));
                     // Producer: enqueue ctrl request for worker thread
                     CtrlRequest req;
                     req.app_name = app_name;
@@ -419,25 +399,25 @@ void App::run()
                     else
                     {
                         // Buffer full: handle error (log, respond, etc.)
-                        std::cerr << "[CTRL] Queue full, dropping request for '" << app_name << "'" << std::endl;
+                        Logger::error("[CTRL] Queue full, dropping request for '" + app_name + "'");
                         // TODO: Optionally send FSL_CTRL_ERR_QUEUE_FULL response to client
                     }
                 }
                 else if (n < 0)
                 {
-                    std::cerr << "[CTRL] Failed to receive request for '" << app_name << "'" << std::endl;
+                    Logger::error("[CTRL] Failed to receive request for '" + app_name + "'");
                 }
             }
         }
     }
 
     cleanup();
-    std::cout << "[INFO] Graceful shutdown complete." << std::endl;
+    Logger::info("Graceful shutdown complete.");
 }
 
 void App::processCtrlRequest(const CtrlRequest &req)
 {
     // Actual ctrl message processing logic here
-    std::cout << "[CTRL-WORKER] Processing request for '" << req.app_name << "', bytes=" << req.data.size() << std::endl;
+    Logger::info("[CTRL-WORKER] Processing request for '" + req.app_name + "', bytes=" + std::to_string(req.data.size()));
     // lilo:TODO: Implement ctrl message handling
 }
