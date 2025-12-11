@@ -74,24 +74,30 @@ def test_uds_to_udp():
     """Test: App sends to UDS server, FSL routes to UDP (GSL)."""
     gcom_udp_ip = "127.0.0.1"
     gcom_udp_port = 9010
-    uds_server_path = "/tmp/DL_APP1_H"
-    payload = "hello_from_app"
-    # Start UDP receiver (GSL)
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind((gcom_udp_ip, gcom_udp_port))
-    s.settimeout(2)
-    print("Sending to UDS server...")
-    send_uds_to_fcom(uds_server_path, payload)
-    print("Receiving from UDP...")
-    try:
-        data, addr = s.recvfrom(4096)
-        print("Received from UDP:", data)
-        assert data is not None
-    except socket.timeout:
-        print("No UDP data received")
-        assert False, "No UDP data received"
-    finally:
-        s.close()
+    app_uds_paths = [
+        "/tmp/DL_APP1_H",
+        "/tmp/DL_APP2_H",
+        "/tmp/DL_APP3_H",
+        # Add more app UDS paths as needed
+    ]
+    for i, uds_server_path in enumerate(app_uds_paths, start=1):
+        payload = f"hello_from_app{i}"
+        # Start UDP receiver (GSL)
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.bind((gcom_udp_ip, gcom_udp_port))
+        s.settimeout(2)
+        print(f"Sending to UDS server {uds_server_path}...")
+        send_uds_to_fcom(uds_server_path, payload)
+        print("Receiving from UDP...")
+        try:
+            data, addr = s.recvfrom(4096)
+            print("Received from UDP:", data)
+            assert data is not None, f"No UDP data received for {uds_server_path}"
+        except socket.timeout:
+            print(f"No UDP data received for {uds_server_path}")
+            assert False, f"No UDP data received for {uds_server_path}"
+        finally:
+            s.close()
 
 
 def main():
