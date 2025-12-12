@@ -19,8 +19,8 @@ function main() {
 
 	# Handle positional arguments (clean, test, all, image)
 	if [[ "$1" == "clean" ]]; then
-		echo -e "\e[97;44mCleaning build folders...\e[0m"
-		rm -rf build-debug build-release
+		echo -e "\e[97;44mCleaning build folders and logs...\e[0m"
+		rm -rf build-debug build-release logs
 		echo -e "\e[32mClean completed.\e[0m"
 		exit 0
 	elif [[ "$1" == "test" ]]; then
