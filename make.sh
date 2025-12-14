@@ -38,10 +38,11 @@ function main() {
 			-t|--target)
 				if [[ -n "${2}" && ( "${2}" == "linux" || "${2}" == "Linux" ) ]]; then
 					TARGET="linux"
-				elif [[ -n "${2}" && ( "${2}" == "petalinux" || "${2}" == "PetaLinux" ) ]]; then
-					TARGET="petalinux"
-					export PETALINUX_C_COMPILER="/${HOME}/dev/petalinux/components/yocto/targets/aarch64-xilinx-linux/toolchain/bin/aarch64-xilinx-linux-gnu-gcc"
-					export PETALINUX_CXX_COMPILER="/${HOME}/dev/petalinux/components/yocto/targets/aarch64-xilinx-linux/toolchain/bin/aarch64-xilinx-linux-gnu-g++"
+				   elif [[ -n "${2}" && ( "${2}" == "petalinux" || "${2}" == "PetaLinux" ) ]]; then
+					   TARGET="petalinux"
+					   export PETALINUX=1
+					   export PETALINUX_C_COMPILER="${HOME}/dev/petalinux/tools/xsct/gnu/aarch64/lin/aarch64-none/x86_64-oesdk-linux/usr/bin/aarch64-xilinx-elf/aarch64-xilinx-elf-gcc"
+					   export PETALINUX_CXX_COMPILER="${HOME}/dev/petalinux/tools/xsct/gnu/aarch64/lin/aarch64-none/x86_64-oesdk-linux/usr/bin/aarch64-xilinx-elf/aarch64-xilinx-elf-g++"
 				else
 					echo "Unknown target: ${2}. Use 'linux' or 'petalinux'."
 					exit 1
