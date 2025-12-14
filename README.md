@@ -139,15 +139,15 @@ make clean
 ```
 
 No cleanup script is needed. The `build` directory is ignored by git via `.gitignore`.
-                <path>/tmp/app1_to_fcom</path>
+                <path>/tmp/fsw_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
             <response>
-                <path>/tmp/fcom_to_app1</path>
+                <path>/tmp/fcom_to_fsw</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </response>
-        </app1>
-        <app2>
+        </fsw>
+        <PLMG>
 
 # Then build:
 mkdir -p build
@@ -158,7 +158,7 @@ make
 
 Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual paths to your PetaLinux toolchain binaries.
             </response>
-        </app2>
+        </PLMG>
 
 - `src/main.cpp`: Application entry point
 - `src/app.cpp`, `src/app.h`: Main application logic
@@ -168,7 +168,7 @@ Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual 
 - `src/uds.cpp`, `src/uds.h`: Unix Domain Socket handling
 - `src/ctrl_request.h`, `src/icd.h`, `src/instance_utils.h`: Protocol and utility headers
 - `src/config.xml`: Example configuration file
-                <path>/tmp/app2_to_fcom</path>
+                <path>/tmp/plmg_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
         </dynamic>
@@ -179,7 +179,7 @@ Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual 
 - `<udp>`: UDP socket configuration for FSL.
 - `<data_link_uds>`: UDS server sockets (downlink) and client sockets (uplink) for each app.
 - `<ul_uds_mapping>`: Maps message opcodes to UDS client names for routing uplink messages.
-- `<ctrl_status_uds>`: Contains ctrl/status UDS channels for each app or logical entity. Each child element (e.g., `<app1>`, `<telemetry>`, `<app2>`, `<app3>`, `<dynamic>`) defines request and/or response UDS sockets for control and status communication between the app and FSL. Each `<request>` or `<response>` can specify a `<path>` and an optional `<receive_buffer_size>`. This section is parsed dynamically, so you can add or remove app sections as needed.
+- `<ctrl_status_uds>`: Contains ctrl/status UDS channels for each app or logical entity. Each child element (e.g., `<FSW>`, `<telemetry>`, `<PLMG>`, `<EL>`, `<dynamic>`) defines request and/or response UDS sockets for control and status communication between the app and FSL. Each `<request>` or `<response>` can specify a `<path>` and an optional `<receive_buffer_size>`. This section is parsed dynamically, so you can add or remove app sections as needed.
 
 
 ## Running the System
@@ -227,7 +227,7 @@ Or use Python to send a packet with a specific opcode and payload.
 Send data to a UDS server socket:
 
 ```bash
-echo -n "payload" | socat - UNIX-SENDTO:/tmp/DL_APP1_H
+echo -n "payload" | socat - UNIX-SENDTO:/tmp/FSW_HIGH_DL
 ```
 FSL will send a UDP packet to the remote IP/port.
 
