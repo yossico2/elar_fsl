@@ -27,13 +27,13 @@ void override_config_from_env(AppConfig &config)
 
 void rewrite_uds_paths(AppConfig &config, int instance)
 {
-    auto prefix = std::string("/tmp/sensor") + std::to_string(instance) + "/";
+    auto prefix = std::string("/tmp/sensor-") + std::to_string(instance) + "/";
     // UDS servers
     for (auto &server : config.uds_servers)
     {
         if (!server.path.empty() && server.path.rfind("/tmp/", 0) == 0)
         {
-            // Replace /tmp/ with /tmp/sensor{instance}/
+            // Replace /tmp/ with /tmp/sensor-{instance}/
             server.path = prefix + server.path.substr(5);
         }
     }
