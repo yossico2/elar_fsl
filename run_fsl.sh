@@ -18,8 +18,10 @@ fi
 
 function main() {
 	local detach=""
-	local instance=1
+	local instance=0
 	local run_no_docker=0
+
+	local fsldir="${HOME}/dev/elar/elar_fsl/build-debug"
 
 	# parse args in any order
 	for arg in "$@"; do
@@ -50,7 +52,7 @@ function main() {
 				kill "${pid}"
 			done
 		fi
-		cd ./build-debug || exit 1
+		cd "${fsldir}" || exit 1
 		nohup ./fsl "${instance}" >"${logdir}/fsl-${instance}.log" 2>&1 &
 		if [[ $? -ne 0 ]]; then
 			echo "Error: Failed to start fsl in background" >&2
