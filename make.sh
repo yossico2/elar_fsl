@@ -149,11 +149,15 @@ function main() {
 	ls -l ./CMakeLists.txt || echo 'CMakeLists.txt not found!'
 
 	if [[ "${TARGET}" == "petalinux" ]]; then
-		export LD_LIBRARY_PATH=
 		export PETALINUX=1
-		export PETALINUX_C_COMPILER="${HOME}/dev/petalinux/tools/xsct/gnu/aarch64/lin/aarch64-none/x86_64-oesdk-linux/usr/bin/aarch64-xilinx-elf/aarch64-xilinx-elf-gcc"
-		export PETALINUX_CXX_COMPILER="${HOME}/dev/petalinux/tools/xsct/gnu/aarch64/lin/aarch64-none/x86_64-oesdk-linux/usr/bin/aarch64-xilinx-elf/aarch64-xilinx-elf-g++"
-		cmake -S . -B "${BUILD_TARGET_DIR}" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPETALINUX=ON
+		local GCC="${HOME}/dev/petalinux/tools/xsct/gnu/aarch64/lin/aarch64-none/x86_64-oesdk-linux/usr/bin/aarch64-xilinx-elf/aarch64-xilinx-elf-gcc"
+		local GPP="${HOME}/dev/petalinux/tools/xsct/gnu/aarch64/lin/aarch64-none/x86_64-oesdk-linux/usr/bin/aarch64-xilinx-elf/aarch64-xilinx-elf-g++"
+		# local CMAKE_PATH="${HOME}/dev/petalinux/tools/xsct/tps/lnx64/cmake-3.3.2/bin/cmake"
+		# export LD_LIBRARY_PATH=
+		# source "${HOME}/dev/petalinux/components/yocto/buildtools/environment-setup-x86_64-petalinux-linux"
+		source "${HOME}/dev/petalinux/components/yocto/buildtools/environment-setup-aarch64-xilinx-linux"
+		# ${CMAKE_PATH} -S . -B "${BUILD_TARGET_DIR}" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPETALINUX=ON -DCMAKE_C_COMPILER="${GCC}" -DCMAKE_CXX_COMPILER="${GPP}"
+		cmake -S . -B "${BUILD_TARGET_DIR}" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPETALINUX=ON -DCMAKE_C_COMPILER="${GCC}" -DCMAKE_CXX_COMPILER="${GPP}"
 	else
 		cmake -S . -B "${BUILD_TARGET_DIR}" -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
 	fi
