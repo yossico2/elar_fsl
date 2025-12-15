@@ -141,30 +141,28 @@ function main() {
 	echo -e "\e[97;44mStarting build process (${BUILD_TYPE}, ${TARGET}) in ${BUILD_TARGET_DIR}...\e[0m"
 
 	mkdir -p "${BUILD_TARGET_DIR}"
-	cd "${BUILD_TARGET_DIR}"
 
 	# Debug output
 	echo "PWD: $(pwd)"
-	echo "Expecting CMakeLists.txt at: $(realpath ../../../)/CMakeLists.txt"
-	ls -l ../../..
-	ls -l ../../../CMakeLists.txt || echo 'CMakeLists.txt not found!'
+	echo "Expecting CMakeLists.txt at: $(realpath .)/CMakeLists.txt"
+	ls -l .
+	ls -l ./CMakeLists.txt || echo 'CMakeLists.txt not found!'
 
 	if [[ "${TARGET}" == "petalinux" ]]; then
 		export LD_LIBRARY_PATH=
 		export PETALINUX=1
 		export PETALINUX_C_COMPILER="${HOME}/dev/petalinux/tools/xsct/gnu/aarch64/lin/aarch64-none/x86_64-oesdk-linux/usr/bin/aarch64-xilinx-elf/aarch64-xilinx-elf-gcc"
 		export PETALINUX_CXX_COMPILER="${HOME}/dev/petalinux/tools/xsct/gnu/aarch64/lin/aarch64-none/x86_64-oesdk-linux/usr/bin/aarch64-xilinx-elf/aarch64-xilinx-elf-g++"
-		cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPETALINUX=ON ../../../
+		cmake -S . -B "${BUILD_TARGET_DIR}" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPETALINUX=ON
 	else
-		cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../../../
+		cmake -S . -B "${BUILD_TARGET_DIR}" -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
 	fi
 
-	make
+	make -C "${BUILD_TARGET_DIR}"
 	# Also build tests target if present
-	if grep -q 'add_executable *(tests' ../../CMakeLists.txt; then
-		make tests || true
+	if grep -q 'add_executable *(tests' CMakeLists.txt; then
+		make -C "${BUILD_TARGET_DIR}" tests || true
 	fi
-	cd ../..
 
 	echo -e "\e[32mBuild process completed.\e[0m"
 }
