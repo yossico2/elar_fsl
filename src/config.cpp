@@ -74,6 +74,15 @@ AppConfig load_config(const char *filename, int instance)
 
     AppConfig config;
 
+    // --- Parse Logging Level ---
+    XMLElement *logging_node = root->FirstChildElement("logging");
+    if (logging_node)
+    {
+        XMLElement *level_node = logging_node->FirstChildElement("level");
+        if (level_node && level_node->GetText())
+            config.logging_level = level_node->GetText();
+    }
+
     // --- Parse UDP Settings ---
     XMLElement *udp_node = root->FirstChildElement("udp");
     if (udp_node)

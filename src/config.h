@@ -53,6 +53,9 @@ struct AppConfig
 
     // Ctrl/Status: ctrl_uds_name -> CtrlUdsConfig
     std::map<std::string, CtrlUdsConfig> ctrl_uds_name;
+
+    // Logging level (e.g., "DEBUG", "INFO", "WARN", "ERROR")
+    std::string logging_level = "INFO";
 };
 
 AppConfig load_config(const char *filename, int instance = -1); ///< Parses config.xml and returns AppConfig, optionally rewriting UDS paths for instance
