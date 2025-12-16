@@ -348,6 +348,31 @@ void App::run()
                 int n = uds_servers_[i]->receive(buffer + sizeof(GslFslHeader), sizeof(buffer) - sizeof(GslFslHeader));
                 if (n > 0)
                 {
+                    // Find the server name for this UDS server
+                    std::string server_name;
+                    if (i < config_.uds_servers.size())
+                        server_name = config_.uds_servers[i].name;
+
+                    std::vector<uint8_t> downlink_data(buffer + sizeof(GslFslHeader), buffer + sizeof(GslFslHeader) + n);
+
+                    if (server_name == "FSW_HIGH_DL" || server_name == "FSW_LOW_DL")
+                    {
+                        processFSWDownlink(downlink_data);
+                    }
+                    else if (server_name == "DL_PLMG_H" || server_name == "DL_PLMG_L")
+                    {
+                        processPLMGDownlink(downlink_data);
+                    }
+                    else if (server_name == "DL_EL_H" || server_name == "DL_EL_L")
+                    {
+                        processELDownlink(downlink_data);
+                    }
+                    else
+                    {
+                        Logger::info("Received downlink from server: '" + server_name + "', bytes=" + std::to_string(n));
+                    }
+
+                    // Continue with UDP send as before
                     GslFslHeader hdr;
                     hdr.opcode = 0; // Downlink opcode
                     hdr.length = n;
@@ -360,7 +385,7 @@ void App::run()
                     }
                     else
                     {
-                        Logger::info("Routed UDS->UDP: bytes=" + std::to_string(sent) + ", src='" + uds_servers_[i]->getMyPath() + "'");
+                        Logger::info("Routed UDS->UDP: bytes=" + std::to_string(sent) + ", src='" + uds_servers_[i]->getMyPath() + "' (server: '" + server_name + "')");
                     }
                 }
                 else if (n < 0)
@@ -467,4 +492,23 @@ void App::processELCtrlRequest(std::vector<uint8_t> &data)
                  ", length=" + std::to_string(hdr->length) +
                  ", seq_id=" + std::to_string(hdr->seq_id));
     // lilo:TODO: Implement EL control request handling
+}
+
+// --- Downlink handlers ---
+void App::processFSWDownlink(std::vector<uint8_t> &data)
+{
+    Logger::info("[DOWNLINK] Processing FSW downlink, bytes=" + std::to_string(data.size()));
+    // TODO: Implement FSW downlink handling
+}
+
+void App::processPLMGDownlink(std::vector<uint8_t> &data)
+{
+    Logger::info("[DOWNLINK] Processing PLMG downlink, bytes=" + std::to_string(data.size()));
+    // TODO: Implement PLMG downlink handling
+}
+
+void App::processELDownlink(std::vector<uint8_t> &data)
+{
+    Logger::info("[DOWNLINK] Processing EL downlink, bytes=" + std::to_string(data.size()));
+    // TODO: Implement EL downlink handling
 }

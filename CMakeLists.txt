@@ -29,8 +29,10 @@ else()
 endif()
 
 
+
 add_executable(fsl src/main.cpp src/config.cpp src/uds.cpp src/udp.cpp src/app.cpp src/logger.cpp src/sdk/tinyxml2/tinyxml2.cpp)
 target_include_directories(fsl PRIVATE src src/sdk/tinyxml2)
+target_link_libraries(fsl pthread)
 
 # Add include directories
 include_directories(src)
