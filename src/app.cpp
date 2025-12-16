@@ -337,7 +337,10 @@ void App::run()
                         }
                         else
                         {
-                            Logger::debug("Routed UDP->UDS: opcode=" + std::to_string(opcode) + ", bytes=" + std::to_string(sent) + ", dest='" + ctrl_uds_name + "'");
+                            if (Logger::isDebugEnabled())
+                            {
+                                Logger::debug("Routed UDP->UDS: opcode=" + std::to_string(opcode) + ", bytes=" + std::to_string(sent) + ", dest='" + ctrl_uds_name + "'");
+                            }
                         }
                     }
                     else
@@ -373,7 +376,10 @@ void App::run()
                     }
                     else
                     {
-                        Logger::debug("Routed UDS->UDP: bytes=" + std::to_string(sent) + ", src='" + uds_servers_[i]->getMyPath() + "' (server: '" + server_name + "')");
+                        if (Logger::isDebugEnabled())
+                        {
+                            Logger::debug("Routed UDS->UDP: bytes=" + std::to_string(sent) + ", src='" + uds_servers_[i]->getMyPath() + "' (server: '" + server_name + "')");
+                        }
                     }
                 }
                 else if (n < 0)
@@ -392,7 +398,10 @@ void App::run()
                 int n = ctrl_uds_sockets_[ctrl_uds_name].request->receive(buffer, sizeof(buffer));
                 if (n > 0)
                 {
-                    Logger::debug("[CTRL] Received request for '" + ctrl_uds_name + "', bytes=" + std::to_string(n));
+                    if (Logger::isDebugEnabled())
+                    {
+                        Logger::debug("[CTRL] Received request for '" + ctrl_uds_name + "', bytes=" + std::to_string(n));
+                    }
                     // Producer: enqueue ctrl request for worker thread
                     CtrlRequest req;
                     req.ctrl_uds_name = ctrl_uds_name;
@@ -452,33 +461,51 @@ void App::processCtrlRequest(const CtrlRequest &req)
 void App::processFSWCtrlRequest(std::vector<uint8_t> &data)
 {
     // Handle FSW control request
-    Logger::debug("[CTRL] Processing FSW control request, bytes=" + std::to_string(data.size()));
+    if (Logger::isDebugEnabled())
+    {
+        Logger::debug("[CTRL] Processing FSW control request, bytes=" + std::to_string(data.size()));
+    }
     const fcom_fsw_CS_Header *hdr = reinterpret_cast<const fcom_fsw_CS_Header *>(data.data());
-    Logger::debug("[CTRL] FSW Header: opcode=" + std::to_string(hdr->opcode) +
-                  ", length=" + std::to_string(hdr->length) +
-                  ", seq_id=" + std::to_string(hdr->seq_id));
+    if (Logger::isDebugEnabled())
+    {
+        Logger::debug("[CTRL] FSW Header: opcode=" + std::to_string(hdr->opcode) +
+                      ", length=" + std::to_string(hdr->length) +
+                      ", seq_id=" + std::to_string(hdr->seq_id));
+    }
     // lilo:TODO: Implement FSW control request handling
 }
 
 void App::processPLMGCtrlRequest(std::vector<uint8_t> &data)
 {
     // Handle PLMG control request
-    Logger::debug("[CTRL] Processing PLMG control request, bytes=" + std::to_string(data.size()));
+    if (Logger::isDebugEnabled())
+    {
+        Logger::debug("[CTRL] Processing PLMG control request, bytes=" + std::to_string(data.size()));
+    }
     const plmg_fcom_Header *hdr = reinterpret_cast<const plmg_fcom_Header *>(data.data());
-    Logger::debug("[CTRL] PLMG Header: opcode=" + std::to_string(hdr->opcode) +
-                  ", length=" + std::to_string(hdr->length) +
-                  ", seq_id=" + std::to_string(hdr->seq_id));
+    if (Logger::isDebugEnabled())
+    {
+        Logger::debug("[CTRL] PLMG Header: opcode=" + std::to_string(hdr->opcode) +
+                      ", length=" + std::to_string(hdr->length) +
+                      ", seq_id=" + std::to_string(hdr->seq_id));
+    }
     // lilo:TODO: Implement PLMG control request handling
 }
 
 void App::processELCtrlRequest(std::vector<uint8_t> &data)
 {
     // Handle EL control request
-    Logger::debug("[CTRL] Processing EL control request, bytes=" + std::to_string(data.size()));
+    if (Logger::isDebugEnabled())
+    {
+        Logger::debug("[CTRL] Processing EL control request, bytes=" + std::to_string(data.size()));
+    }
     const plmg_fcom_Header *hdr = reinterpret_cast<const plmg_fcom_Header *>(data.data());
-    Logger::debug("[CTRL] EL Header: opcode=" + std::to_string(hdr->opcode) +
-                  ", length=" + std::to_string(hdr->length) +
-                  ", seq_id=" + std::to_string(hdr->seq_id));
+    if (Logger::isDebugEnabled())
+    {
+        Logger::debug("[CTRL] EL Header: opcode=" + std::to_string(hdr->opcode) +
+                      ", length=" + std::to_string(hdr->length) +
+                      ", seq_id=" + std::to_string(hdr->seq_id));
+    }
     // lilo:TODO: Implement EL control request handling
 }
 
@@ -501,7 +528,10 @@ int App::processDownlinkMessage(const std::string &server_name, std::vector<uint
     }
     else
     {
-        Logger::debug("Received downlink from server: '" + server_name + "', bytes=" + std::to_string(data.size()));
+        if (Logger::isDebugEnabled())
+        {
+            Logger::debug("Received downlink from server: '" + server_name + "', bytes=" + std::to_string(data.size()));
+        }
         // Default: send with opcode 0
         char buffer[4096];
         GslFslHeader hdr;
@@ -518,7 +548,10 @@ int App::processDownlinkMessage(const std::string &server_name, std::vector<uint
 // Returns number of bytes sent, or <0 on error
 int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
-    Logger::debug("[DOWNLINK] Processing FSW downlink, bytes=" + std::to_string(data.size()));
+    if (Logger::isDebugEnabled())
+    {
+        Logger::debug("[DOWNLINK] Processing FSW downlink, bytes=" + std::to_string(data.size()));
+    }
 
     // FSW: no header, just payload
     char buffer[4096];
@@ -534,7 +567,10 @@ int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter
 // Returns number of bytes sent, or <0 on error
 int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
-    Logger::debug("[DOWNLINK] Processing PLMG downlink, bytes=" + std::to_string(data.size()));
+    if (Logger::isDebugEnabled())
+    {
+        Logger::debug("[DOWNLINK] Processing PLMG downlink, bytes=" + std::to_string(data.size()));
+    }
 
     // PLMG: header + payload, header is plmg_fcom_Header
     if (data.size() < sizeof(plmg_fcom_Header))
@@ -560,7 +596,10 @@ int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counte
 // Returns number of bytes sent, or <0 on error
 int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
-    Logger::debug("[DOWNLINK] Processing EL downlink, bytes=" + std::to_string(data.size()));
+    if (Logger::isDebugEnabled())
+    {
+        Logger::debug("[DOWNLINK] Processing EL downlink, bytes=" + std::to_string(data.size()));
+    }
 
     // EL: header + payload, header is plmg_fcom_Header
     if (data.size() < sizeof(plmg_fcom_Header))
