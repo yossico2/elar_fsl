@@ -3,9 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 
-// Include TinyXML-2 header
-// Ensure libtinyxml2-dev is installed on your PetaLinux rootfs
-#include <tinyxml2.h>
+#include "sdk/tinyxml2/tinyxml2.h"
 
 using namespace tinyxml2;
 
@@ -105,6 +103,9 @@ AppConfig load_config(const char *filename, int instance)
             if (tag == "server")
             {
                 UdsServerConfig server_cfg;
+                const char *name = el->Attribute("name");
+                if (name)
+                    server_cfg.name = name;
                 XMLElement *path_el = el->FirstChildElement("path");
                 if (path_el && path_el->GetText())
                     server_cfg.path = path_el->GetText();

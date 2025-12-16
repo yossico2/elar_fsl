@@ -31,6 +31,7 @@ struct CtrlUdsConfig
 
 struct UdsServerConfig
 {
+    std::string name;
     std::string path;
     int receive_buffer_size = 0;
 };
