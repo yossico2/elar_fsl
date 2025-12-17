@@ -8,7 +8,7 @@ print_usage() {
 	echo "  -h, --help  Show this help message"
 	echo ""
 	echo "Environment variables:"
-	echo "  NO_DOCKER=1   Run FSL directly (no Docker), equivalent to -nd"
+	echo "  NO_DOCKER=true   Run FSL directly (no Docker), equivalent to -nd"
 }
 
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -21,7 +21,8 @@ function main() {
 	local instance=""
 	local run_no_docker=0
 
-	# Source env.sh to get BUILD_TARGET_DIR
+	# source env.sh to get BUILD_TARGET_DIR
+	# shellcheck disable=SC1091
 	source "$(dirname "$0")/env.sh"
 	local fsldir="${BUILD_TARGET_DIR}"
 
@@ -56,7 +57,7 @@ function main() {
 	fi
 
 	# Check NO_DOCKER env var
-	if [[ "${NO_DOCKER}" == "1" ]]; then
+	if [[ "${NO_DOCKER}" == "true" ]]; then
 		run_no_docker=1
 	fi
 
@@ -66,21 +67,28 @@ function main() {
 		mkdir -p "${logdir}"
 		# Kill all previous fsl for this instance
 		# Use pgrep to find and kill all fsl processes for this instance
-		prev_pids=$(pgrep -f "./fsl ${instance}")
-		echo "Previous fsl instances for instance ${instance}: ${prev_pids}"
-		if [[ -n "${prev_pids}" ]]; then
-			for pid in ${prev_pids}; do
-				kill "${pid}"
-			done
-		fi
-		cd "${fsldir}" || exit 1
-		nohup ./fsl "${instance}" >"${logdir}/fsl-${instance}.log" 2>&1 &
-		if [[ $? -ne 0 ]]; then
-			echo "Error: Failed to start fsl in background" >&2
-			exit 1
-		fi
-		cd - &>/dev/null || exit 1
-		echo "Started fsl instance ${instance} in background. Output: ${logdir}/fsl-${instance}.log" >&2
+		       prev_pids=$(pgrep -f "./fsl ${instance}")
+		       echo "Previous fsl instances for instance ${instance}: ${prev_pids}"
+		       if [[ -n "${prev_pids}" ]]; then
+			       for pid in ${prev_pids}; do
+				       kill "${pid}"
+				       # Wait for process to exit
+				       while kill -0 "${pid}" 2>/dev/null; do
+					       sleep 0.2
+				       done
+			       done
+		       fi
+		       cd "${fsldir}" || exit 1
+		       nohup ./fsl "${instance}" >"${logdir}/fsl-${instance}.log" 2>&1 &
+		       fsl_pid=$!
+		       sleep 0.5
+		       if ! kill -0 "$fsl_pid" 2>/dev/null; then
+			       echo "Error: Failed to start fsl in background" >&2
+			       cd - &>/dev/null || exit 1
+			       exit 1
+		       fi
+		       cd - &>/dev/null || exit 1
+		       echo "Started fsl instance ${instance} in background (PID $fsl_pid). Output: ${logdir}/fsl-${instance}.log" >&2
 	else
 		docker run --rm ${detach} -it --network=host \
 			--name "fsl-${instance}" \
