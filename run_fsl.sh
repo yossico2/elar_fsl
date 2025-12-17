@@ -62,13 +62,15 @@ function main() {
 		mkdir -p "${logdir}"
 
 		local fsldir=
-		if [[ "${ABSOLUTE_FSL_RUN}" == "true" ]]; then
-			fsldir="${HOME}/dev/elar/elar_fsl/build/linux/debug"
-		else
+		local env_path
+		env_path="$(dirname "$0")/env.sh"
+		if [[ -f "${env_path}" ]]; then
 			# source env.sh to get BUILD_TARGET_DIR
-			# shellcheck disable=SC1091
-			source "$(dirname "$0")/env.sh"
+			# shellcheck disable=SC1090
+			source "${env_path}"
 			fsldir="${BUILD_TARGET_DIR}"
+		else
+			fsldir="${HOME}/dev/elar/elar_fsl/build/linux/debug"
 		fi
 
 		cd "${fsldir}" || exit 1
