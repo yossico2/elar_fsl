@@ -1,3 +1,12 @@
+#include <unordered_map>
+#include "icd/fsl.h"
+
+// Helper for UL_Destination enum to string
+static const std::unordered_map<uint16_t, const char *> UL_DestinationNames = {
+    {UL_Destination::FSW, "FSW"},
+    {UL_Destination::PLMG, "PLMG"},
+    {UL_Destination::EL, "EL"}};
+
 // app.cpp - Implementation of the FSL Application
 //
 // This file implements the App class, which manages UDP and UDS sockets for routing
@@ -325,8 +334,8 @@ void App::run()
             if (n >= (int)GSL_FSL_HEADER_SIZE)
             {
                 const GslFslHeader *hdr = reinterpret_cast<const GslFslHeader *>(buffer);
-                uint16_t opcode = hdr->opcode; // opcode is actually destination for uplink
-                std::map<uint16_t, std::string>::const_iterator map_it = config_.ul_uds_mapping.find(opcode);
+                UL_Destination dest = static_cast<UL_Destination>(hdr->opcode); // opcode is actually destination for uplink
+                std::map<uint16_t, std::string>::const_iterator map_it = config_.ul_uds_mapping.find(static_cast<uint16_t>(dest));
                 if (map_it != config_.ul_uds_mapping.end())
                 {
                     const std::string &ctrl_uds_name = map_it->second;
@@ -337,13 +346,15 @@ void App::run()
                         ssize_t sent = client_it->second->send(buffer + GSL_FSL_HEADER_SIZE, n - GSL_FSL_HEADER_SIZE);
                         if (sent < 0)
                         {
-                            Logger::error("Failed to send to UDS client '" + ctrl_uds_name + "' (opcode: " + std::to_string(opcode) + ")");
+                            Logger::error("Failed to send to UDS client '" + ctrl_uds_name + "' (dest: " + std::to_string(dest) + ")");
                         }
                         else
                         {
                             if (Logger::isDebugEnabled())
                             {
-                                Logger::debug("Routed UDP->UDS: opcode=" + std::to_string(opcode) + ", bytes=" + std::to_string(sent) + ", dest='" + ctrl_uds_name + "'");
+                                auto it = UL_DestinationNames.find(dest);
+                                std::string dest_name = (it != UL_DestinationNames.end()) ? it->second : std::to_string(dest);
+                                Logger::debug("Routed UDP->UDS: dest=" + dest_name + ", bytes=" + std::to_string(sent) + ", uds='" + ctrl_uds_name + "'");
                             }
                         }
                     }
@@ -354,7 +365,7 @@ void App::run()
                 }
                 else
                 {
-                    Logger::error("No UDS mapping for opcode: " + std::to_string(opcode));
+                    Logger::error("No UDS mapping for dest: " + std::to_string(dest));
                 }
             }
         }
