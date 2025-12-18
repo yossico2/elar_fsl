@@ -1,12 +1,3 @@
-#include <unordered_map>
-#include "icd/fsl.h"
-
-// Helper for UL_Destination enum to string
-static const std::unordered_map<uint16_t, const char *> UL_DestinationNames = {
-    {UL_Destination::FSW, "FSW"},
-    {UL_Destination::PLMG, "PLMG"},
-    {UL_Destination::EL, "EL"}};
-
 // app.cpp - Implementation of the FSL Application
 //
 // This file implements the App class, which manages UDP and UDS sockets for routing
@@ -25,12 +16,14 @@ static const std::unordered_map<uint16_t, const char *> UL_DestinationNames = {
 // Error handling: Prints errors for invalid config, socket failures, and message routing issues.
 
 #include "app.h"
+#include "icd/fsl.h"
 #include <iostream>
 #include <poll.h>
 #include <csignal>
 #include <signal.h>
 #include <unistd.h>
 #include <set>
+#include <unordered_map>
 
 #include <thread>
 #include <queue>
@@ -42,6 +35,12 @@ static const std::unordered_map<uint16_t, const char *> UL_DestinationNames = {
 #include "icd/fsl.h"
 #include "icd/fcom.h"
 #include "ctrl_request.h"
+
+// Helper for UL_Destination enum to string
+static const std::unordered_map<uint16_t, const char *> UL_DestinationNames = {
+    {UL_Destination::FSW, "FSW"},
+    {UL_Destination::PLMG, "PLMG"},
+    {UL_Destination::EL, "EL"}};
 
 volatile sig_atomic_t App::shutdown_flag_ = 0;
 
