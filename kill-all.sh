@@ -1,3 +1,6 @@
 #!/bin/bash
 
-kill $(pgrep -f "./fsl")
+PIDS=$(pgrep -f "./fsl")
+if [[ -n "${PIDS}" ]]; then
+	kill "${PIDS}"
+fi

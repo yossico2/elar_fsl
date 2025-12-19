@@ -91,17 +91,22 @@ function main() {
 			done
 		fi
 
-		nohup ./fsl "${instance}" >"${logdir}/fsl-${instance}.log" 2>&1 &
-		fsl_pid=$!
-		sleep 0.5
-		if ! kill -0 "${fsl_pid}" 2>/dev/null; then
-			echo "Error: Failed to start fsl in background" >&2
-			cd - &>/dev/null || exit 1
-			exit 1
-		fi
-		
-		cd - &>/dev/null || exit 1
-		echo "Started fsl instance ${instance} in background (PID ${fsl_pid}). Output: ${logdir}/fsl-${instance}.log" >&2
+		   if [[ -n "$detach" ]]; then
+			   nohup ./fsl "${instance}" >"${logdir}/fsl-${instance}.log" 2>&1 &
+			   fsl_pid=$!
+			   sleep 0.5
+			   if ! kill -0 "${fsl_pid}" 2>/dev/null; then
+				   echo "Error: Failed to start fsl in background" >&2
+				   cd - &>/dev/null || exit 1
+				   exit 1
+			   fi
+			   cd - &>/dev/null || exit 1
+			   echo "Started fsl instance ${instance} in background (PID ${fsl_pid}). Output: ${logdir}/fsl-${instance}.log" >&2
+		   else
+			   ./fsl "${instance}" | tee "${logdir}/fsl-${instance}.log"
+			   cd - &>/dev/null || exit 1
+			   echo "Started fsl instance ${instance} in foreground. Output: ${logdir}/fsl-${instance}.log" >&2
+		   fi
 	else
 		docker run --rm ${detach} -it --network=host \
 			--name "fsl-${instance}" \
