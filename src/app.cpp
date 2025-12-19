@@ -288,6 +288,22 @@ void App::run()
             }
         } });
 
+    // RAII guard to ensure thread is joined on all exit paths
+    struct CtrlWorkerGuard
+    {
+        std::thread &worker;
+        bool &running;
+        std::condition_variable &cv;
+        CtrlWorkerGuard(std::thread &w, bool &r, std::condition_variable &c) : worker(w), running(r), cv(c) {}
+        ~CtrlWorkerGuard()
+        {
+            running = false;
+            cv.notify_one();
+            if (worker.joinable())
+                worker.join();
+        }
+    } guard(ctrl_worker_, ctrl_worker_running_, ctrl_queue_cv_);
+
     // === Polling and routing logic ---
     // Layout: [0]=UDP, [1..N]=UDS servers, [N+1..]=ctrl_uds_sockets_ (request only)
     const size_t uds_count = uds_servers_.size();
