@@ -1,3 +1,7 @@
+// For test access
+#ifdef UNIT_TEST_FRIENDS
+friend struct AppTestFriend;
+#endif
 // app.h - Main FSL Application class
 #include <vector>
 #include <string>
@@ -12,6 +16,7 @@
 #include <condition_variable>
 #include <csignal>        // For sig_atomic_t
 #include "ctrl_request.h" // For CtrlRequest type
+#include "icd/fsl.h"      // For FslStates, FslCtrl* types
 
 //
 // The App class manages UDP and multiple UDS sockets (server/client) for routing
@@ -74,7 +79,7 @@ public:
     // Process EL downlink message
     int processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter);
 
-private:
+protected:
     AppConfig config_;
     UdpServerSocket udp_;
     std::vector<std::unique_ptr<UdsSocket>> uds_servers_;
@@ -86,4 +91,7 @@ private:
     };
     std::map<std::string, CtrlUdsSockets> ctrl_uds_sockets_;
     static volatile sig_atomic_t shutdown_flag_;
+
+    // CBIT state for FSL (for PLMG ctrl requests)
+    FslStates cbit_state_ = FSL_STATE_STANDBY;
 };

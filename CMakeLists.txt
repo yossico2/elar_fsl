@@ -1,7 +1,14 @@
 # Catch2 test target
 add_executable(tests
+    tests/main.cpp
     tests/test_config.cpp
+    tests/test_ctrl_status.cpp
+    tests/test_plmg_ctrl.cpp
+    src/app.cpp
+    src/uds.cpp
+    src/udp.cpp
     src/config.cpp
+    src/logger.cpp
     src/sdk/tinyxml2/tinyxml2.cpp
 )
 target_include_directories(tests PRIVATE tests src src/sdk/tinyxml2)

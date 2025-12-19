@@ -68,30 +68,25 @@ typedef struct FslCtrlHeader
     uint32_t ctrl_seq_id;             ///< Sequence ID (for matching requests/responses)
 } FslCtrlHeader;
 
+/// General request for ctrl requests
+typedef struct FslCtrlGeneralRequest
+{
+    FslCtrlHeader header;
+} FslCtrlGeneralRequest;
+
+/// General response for ctrl requests
+typedef struct FslCtrlGeneralResponse
+{
+    FslCtrlHeader header;
+} FslCtrlGeneralResponse;
+
 /// Response to GET_CBIT (status query)
 typedef struct FslCtrlGetCbitResponse
 {
     FslCtrlHeader header;
-    FslStates fsl_state; ///< Current FSL state
+    FslStates state;             ///< Current FSL state
+    FslCtrlErrorCode error_code; ///< Error code
 } FslCtrlGetCbitResponse;
-
-/// Request to set FSL to OPER state
-typedef struct FslCtrlSetOperRequest
-{
-    FslCtrlHeader header;
-} FslCtrlSetOperRequest;
-
-/// Request to set FSL to STANDBY state
-typedef struct FslCtrlSetStandbyRequest
-{
-    FslCtrlHeader header;
-} FslCtrlSetStandbyRequest;
-
-/// General ACK response for ctrl requests
-typedef struct FslCtrlGeneralAckResponse
-{
-    FslCtrlHeader header;
-} FslCtrlGeneralAckResponse;
 
 typedef struct FslDataLinkErrorResponse
 {

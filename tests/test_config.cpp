@@ -1,10 +1,31 @@
-#define CATCH_CONFIG_MAIN
+#include <iostream>
+#include <unistd.h>
+struct PrintCWD
+{
+    PrintCWD()
+    {
+        char cwd[1024];
+        if (getcwd(cwd, sizeof(cwd)))
+        {
+            std::cout << "[DEBUG] (main) CWD: " << cwd << std::endl;
+        }
+    }
+};
+static PrintCWD printCWDInstance;
 #include "catch.hpp"
 #include "../src/config.h"
 #include <fstream>
 
 TEST_CASE("Config parsing: minimal valid config", "[config]")
 {
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)))
+    {
+        std::cout << "[DEBUG] (test_config) CWD: " << cwd << std::endl;
+        std::cout.flush();
+    }
+    std::cout << "[DEBUG] (test_config) About to create test_config.xml" << std::endl;
+    std::cout.flush();
     const char *xml = R"(<config>
     <udp>
         <local_port>1234</local_port>
@@ -34,11 +55,23 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
         </appx>
     </ctrl_status_uds>
 </config>)";
-    std::ofstream f("test_config.xml");
+
+    std::ofstream f("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml");
+    if (f.is_open())
+    {
+        std::cout << "[DEBUG] (test_config) test_config.xml created/opened for writing" << std::endl;
+    }
+    else
+    {
+        std::cout << "[DEBUG] (test_config) FAILED to open test_config.xml for writing" << std::endl;
+    }
+    std::cout.flush();
     f << xml;
     f.close();
+    std::cout << "[DEBUG] (test_config) test_config.xml write/close done" << std::endl;
+    std::cout.flush();
 
-    AppConfig cfg = load_config("test_config.xml");
+    AppConfig cfg = load_config("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml");
     REQUIRE(cfg.udp_local_port == 1234);
     REQUIRE(cfg.udp_remote_ip == "127.0.0.1");
     REQUIRE(cfg.udp_remote_port == 5678);
@@ -54,5 +87,5 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     REQUIRE(cfg.ctrl_uds_name.at("appx").request_buffer_size == 2048);
     REQUIRE(cfg.ctrl_uds_name.at("appx").response_path == "/tmp/fcom_to_appx");
     REQUIRE(cfg.ctrl_uds_name.at("appx").response_buffer_size == 4096);
-    remove("test_config.xml");
+    // Do not remove the shared test_config.xml, as other tests depend on it
 }

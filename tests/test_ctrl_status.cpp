@@ -1,6 +1,6 @@
-#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include "../src/app.h"
+#include <iostream>
 #include <thread>
 #include <chrono>
 #include <queue>
@@ -9,7 +9,30 @@
 TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
 {
     // Create a minimal App instance (mock config)
-    AppConfig cfg = load_config("test_config.xml");
+    // Debug: print CWD and test file access
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)))
+    {
+        std::cout << "[DEBUG] CWD: " << cwd << std::endl;
+        std::cout.flush();
+    }
+    std::cout << "[DEBUG] About to fopen test_config.xml" << std::endl;
+    std::cout.flush();
+    FILE *f = fopen("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml", "r");
+    if (f)
+    {
+        std::cout << "[DEBUG] test_config.xml opened successfully" << std::endl;
+        fclose(f);
+    }
+    else
+    {
+        std::cout << "[DEBUG] Failed to open test_config.xml" << std::endl;
+    }
+    std::cout << "[DEBUG] About to call load_config" << std::endl;
+    std::cout.flush();
+    AppConfig cfg = load_config("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml");
+    std::cout << "[DEBUG] load_config returned successfully" << std::endl;
+    std::cout.flush();
     App app(cfg);
     // Simulate a CtrlRequest
     CtrlRequest req;
@@ -31,7 +54,7 @@ TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
 
 TEST_CASE("CtrlRequest queue full error", "[ctrl_status]")
 {
-    AppConfig cfg = load_config("test_config.xml");
+    AppConfig cfg = load_config("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml");
     App app(cfg);
     // Fill the queue to max size
     for (size_t i = 0; i < App::CTRL_QUEUE_MAX_SIZE; ++i)

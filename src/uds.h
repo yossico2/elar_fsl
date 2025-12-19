@@ -37,7 +37,7 @@ public:
     bool bindSocket();
 
     // Send a datagram to target_path (client)
-    ssize_t send(const void *buffer, size_t length);
+    virtual ssize_t send(const void *buffer, size_t length);
 
     // Receive a datagram from the socket
     ssize_t receive(void *buffer, size_t length);

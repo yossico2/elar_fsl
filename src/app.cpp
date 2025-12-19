@@ -522,19 +522,92 @@ void App::processFSWCtrlRequest(std::vector<uint8_t> &data)
 
 void App::processPLMGCtrlRequest(std::vector<uint8_t> &data)
 {
-    // Handle PLMG control request
+    // Handle PLMG control request (FSL ctrl protocol)
     if (Logger::isDebugEnabled())
     {
         Logger::debug("[CTRL] Processing PLMG control request, bytes=" + std::to_string(data.size()));
     }
-    const plmg_fcom_header *const hdr = static_cast<const plmg_fcom_header *>(static_cast<const void *>(data.data()));
-    if (Logger::isDebugEnabled())
+
+    if (data.size() < sizeof(FslCtrlGeneralRequest))
     {
-        Logger::debug("[CTRL] PLMG Header: opcode=" + std::to_string(hdr->opcode) +
-                      ", length=" + std::to_string(hdr->length) +
-                      ", seq_id=" + std::to_string(hdr->seq_id));
+        Logger::error("[CTRL] PLMG ctrl request too short");
+        return;
     }
-    // lilo:TODO: Implement PLMG control request handling
+
+    const FslCtrlGeneralRequest *req = reinterpret_cast<const FslCtrlGeneralRequest *>(data.data());
+    FslCtrlOpcode opcode = req->header.ctrl_opcode;
+    uint32_t seq_id = req->header.ctrl_seq_id;
+
+    // Prepare response buffer
+    std::vector<uint8_t> response;
+
+    switch (opcode)
+    {
+    case FSL_CTRL_OP_SET_OPER:
+    case FSL_CTRL_OP_SET_STANDBY:
+    {
+        // Only change state and return general response with no error
+        cbit_state_ = (opcode == FSL_CTRL_OP_SET_OPER) ? FSL_STATE_OPER : FSL_STATE_STANDBY;
+        {
+            FslCtrlGeneralResponse resp = {};
+            resp.header.ctrl_opcode = opcode;
+            resp.header.ctrl_error_code = FSL_CTRL_ERR_NONE;
+            resp.header.ctrl_length = 0;
+            resp.header.ctrl_seq_id = seq_id;
+            response.resize(sizeof(FslCtrlGeneralResponse));
+            memcpy(response.data(), &resp, sizeof(FslCtrlGeneralResponse));
+        }
+
+        break;
+    }
+
+    case FSL_CTRL_OP_GET_CBIT:
+    {
+        // Fill CBIT response
+        FslCtrlGetCbitResponse resp = {};
+        resp.header.ctrl_opcode = opcode;
+        resp.header.ctrl_error_code = FSL_CTRL_ERR_NONE;
+        resp.header.ctrl_length = sizeof(FslCtrlGetCbitResponse) - sizeof(FslCtrlHeader);
+        resp.header.ctrl_seq_id = seq_id;
+        resp.state = cbit_state_;
+        resp.error_code = FSL_CTRL_ERR_NONE;
+        response.resize(sizeof(FslCtrlGetCbitResponse));
+        memcpy(response.data(), &resp, sizeof(FslCtrlGetCbitResponse));
+        break;
+    }
+
+    default:
+    {
+        // Unknown/unsupported opcode
+        FslCtrlGeneralResponse resp = {};
+        resp.header.ctrl_opcode = opcode;
+        resp.header.ctrl_error_code = FSL_CTRL_ERR_UNKNOWN_OPCODE;
+        resp.header.ctrl_length = 0;
+        resp.header.ctrl_seq_id = seq_id;
+        response.resize(sizeof(FslCtrlGeneralResponse));
+        memcpy(response.data(), &resp, sizeof(FslCtrlGeneralResponse));
+        break;
+    }
+    }
+
+    // Send response if response socket exists
+    auto it = ctrl_uds_sockets_.find("PLMG");
+    if (it != ctrl_uds_sockets_.end() && it->second.response)
+    {
+        ssize_t sent = it->second.response->send(response.data(), response.size());
+        if (sent < 0)
+        {
+            Logger::error("[CTRL] Failed to send PLMG ctrl response");
+        }
+        else if (Logger::isDebugEnabled())
+        {
+            Logger::debug("[CTRL] Sent PLMG ctrl response, bytes=" + std::to_string(sent));
+        }
+    }
+    else
+    {
+        Logger::error("[CTRL] No PLMG ctrl response socket available");
+    }
 }
 
 void App::processELCtrlRequest(std::vector<uint8_t> &data)
