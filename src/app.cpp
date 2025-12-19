@@ -77,12 +77,14 @@ App::App(const AppConfig &config)
     }
 
     // --- Configuration Validation ---
+    // Collect configuration errors
+    std::vector<std::string> config_errors;
     // 1. Check all UDS mapping names exist in <client>
     for (const auto &mapping : config_.ul_uds_mapping)
     {
         const std::string &ctrl_uds_name = mapping.second;
         if (config_.uds_clients.find(ctrl_uds_name) == config_.uds_clients.end())
-            Logger::error("UDS mapping name '" + ctrl_uds_name + "' (opcode " + std::to_string(mapping.first) + ") does not exist in <client> list.");
+            config_errors.push_back("UDS mapping name '" + ctrl_uds_name + "' (opcode " + std::to_string(mapping.first) + ") does not exist in <client> list.");
     }
 
     // 2. Ensure all UDS server/client paths are non-empty and unique
@@ -90,17 +92,27 @@ App::App(const AppConfig &config)
     for (const auto &server : config_.uds_servers)
     {
         if (server.path.empty())
-            Logger::error("UDS server path is empty.");
+            config_errors.push_back("UDS server path is empty.");
         if (!uds_paths.insert(server.path).second)
-            Logger::error("Duplicate UDS server path: '" + server.path + "'");
+            config_errors.push_back("Duplicate UDS server path: '" + server.path + "'");
     }
 
     for (const auto &client : config_.uds_clients)
     {
         if (client.second.empty())
-            Logger::error("UDS client '" + client.first + "' path is empty.");
+            config_errors.push_back("UDS client '" + client.first + "' path is empty.");
         if (!uds_paths.insert(client.second).second)
-            Logger::error("Duplicate UDS client path: '" + client.second + "' (name: " + client.first + ")");
+            config_errors.push_back("Duplicate UDS client path: '" + client.second + "' (name: " + client.first + ")");
+    }
+
+    // If any configuration errors, log and throw
+    if (!config_errors.empty())
+    {
+        for (const auto &err : config_errors)
+        {
+            Logger::error(err);
+        }
+        throw std::runtime_error("Configuration validation failed. See log for details.");
     }
 
     // Create and bind all UDS servers (downlink)
