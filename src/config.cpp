@@ -42,6 +42,7 @@ void override_config_from_env(AppConfig &config)
 void rewrite_uds_paths(AppConfig &config, int instance)
 {
     auto prefix = std::string("/tmp/sensor-") + std::to_string(instance) + "/";
+
     // UDS servers
     for (auto &server : config.uds_servers)
     {
@@ -51,6 +52,7 @@ void rewrite_uds_paths(AppConfig &config, int instance)
             server.path = prefix + server.path.substr(5);
         }
     }
+
     // UDS clients
     for (auto &client : config.uds_clients)
     {
@@ -59,6 +61,7 @@ void rewrite_uds_paths(AppConfig &config, int instance)
             client.second = prefix + client.second.substr(5);
         }
     }
+
     // Ctrl/Status UDS
     for (auto &entry : config.ctrl_uds_name)
     {
@@ -121,6 +124,10 @@ AppConfig load_config(const char *filename, int instance)
     XMLElement *sensor_id_el = root->FirstChildElement("sensor_id");
     if (sensor_id_el)
         sensor_id_el->QueryIntText(&config.sensor_id);
+
+    // If instance is provided, always use it for sensor_id (unless FSL_SENSOR_ID is set)
+    if (instance >= 0)
+        config.sensor_id = instance;
 
     // --- Parse Data Link UDS Settings ---
     XMLElement *uds_node = root->FirstChildElement("data_link_uds");
@@ -214,6 +221,26 @@ AppConfig load_config(const char *filename, int instance)
 
     // --- Override with environment variables if set ---
     override_config_from_env(config);
+
+    // If sensor_id is not set (<=0) and instance >= 0, use instance as sensor_id
+    if (config.sensor_id <= 0 && instance >= 0)
+    {
+        config.sensor_id = instance;
+    }
+
+    // If instance >= 0, assign unique UDP ports per instance
+    if (instance >= 0)
+    {
+        // Only override if default ports are used (9910, 9010)
+        if (config.udp_local_port == 9910)
+        {
+            config.udp_local_port = 9910 + instance;
+        }
+        if (config.udp_remote_port == 9010)
+        {
+            config.udp_remote_port = 9010 + instance;
+        }
+    }
 
     return config;
 }

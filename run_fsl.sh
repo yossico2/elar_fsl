@@ -45,8 +45,8 @@ function main() {
 	# Determine instance priority
 	if [[ -n "$arg_instance" ]]; then
 		instance="$arg_instance"
-	elif [[ -n "$STATEFULSET_INDEX" ]]; then
-		instance="$STATEFULSET_INDEX"
+	elif [[ -n "${STATEFULSET_INDEX}" ]]; then
+		instance="${STATEFULSET_INDEX}"
 	else
 		instance=0
 	fi
