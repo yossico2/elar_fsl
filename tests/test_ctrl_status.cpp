@@ -6,6 +6,14 @@
 #include <queue>
 #include <mutex>
 
+// Helper to get config path safely
+static std::string get_test_config_path()
+{
+    const char *home = getenv("HOME");
+    REQUIRE(home != nullptr); // Fail test if HOME is not set
+    return std::string(home) + "/dev/elar/elar_fsl/tests/test_config.xml";
+}
+
 TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
 {
     // Create a minimal App instance (mock config)
@@ -18,7 +26,8 @@ TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
     }
     std::cout << "[DEBUG] About to fopen test_config.xml" << std::endl;
     std::cout.flush();
-    FILE *f = fopen("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml", "r");
+    std::string config_path = get_test_config_path();
+    FILE *f = fopen(config_path.c_str(), "r");
     if (f)
     {
         std::cout << "[DEBUG] test_config.xml opened successfully" << std::endl;
@@ -30,7 +39,7 @@ TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
     }
     std::cout << "[DEBUG] About to call load_config" << std::endl;
     std::cout.flush();
-    AppConfig cfg = load_config("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml");
+    AppConfig cfg = load_config(config_path.c_str());
     std::cout << "[DEBUG] load_config returned successfully" << std::endl;
     std::cout.flush();
     App app(cfg);
@@ -54,7 +63,8 @@ TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
 
 TEST_CASE("CtrlRequest queue full error", "[ctrl_status]")
 {
-    AppConfig cfg = load_config("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml");
+    std::string config_path = get_test_config_path();
+    AppConfig cfg = load_config(config_path.c_str());
     App app(cfg);
     // Fill the queue to max size
     for (size_t i = 0; i < App::CTRL_QUEUE_MAX_SIZE; ++i)

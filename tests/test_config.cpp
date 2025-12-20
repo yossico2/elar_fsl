@@ -56,7 +56,9 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     </ctrl_status_uds>
 </config>)";
 
-    std::ofstream f("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml");
+    const char *home = getenv("HOME");
+    std::string config_path = std::string(home) + "/dev/elar/elar_fsl/tests/test_config.xml";
+    std::ofstream f(config_path);
     if (f.is_open())
     {
         std::cout << "[DEBUG] (test_config) test_config.xml created/opened for writing" << std::endl;
@@ -71,7 +73,7 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     std::cout << "[DEBUG] (test_config) test_config.xml write/close done" << std::endl;
     std::cout.flush();
 
-    AppConfig cfg = load_config("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml");
+    AppConfig cfg = load_config(config_path.c_str());
     REQUIRE(cfg.udp_local_port == 1234);
     REQUIRE(cfg.udp_remote_ip == "127.0.0.1");
     REQUIRE(cfg.udp_remote_port == 5678);

@@ -38,7 +38,9 @@ static FslCtrlGeneralResponse parse_gen_resp(const std::vector<uint8_t> &data)
 
 TEST_CASE("FSL state changes to OPER and STANDBY via FSW ctrl requests", "[ctrl_status]")
 {
-    AppConfig cfg = load_config("/home/yossico/dev/elar/elar_fsl/tests/test_config.xml");
+    const char *home = getenv("HOME");
+    std::string config_path = std::string(home) + "/dev/elar/elar_fsl/tests/test_config.xml";
+    AppConfig cfg = load_config(config_path);
     App app(cfg);
 
     // Simulate FSW ctrl response socket
