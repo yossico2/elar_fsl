@@ -6,14 +6,7 @@
 #include <queue>
 #include <mutex>
 #include <unistd.h>
-
-// Helper to get config path safely
-static std::string get_test_config_path()
-{
-    const char *home = getenv("HOME");
-    REQUIRE(home != nullptr); // Fail test if HOME is not set
-    return std::string(home) + "/dev/elar/elar_fsl/tests/test_config.xml";
-}
+#include "test_utils.h"
 
 TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
 {

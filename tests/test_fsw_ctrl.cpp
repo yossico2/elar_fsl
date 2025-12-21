@@ -1,6 +1,7 @@
 #include "catch.hpp"
 #include "../src/app.h"
 #include "../src/icd/fsl.h"
+#include "test_utils.h"
 #include <iostream>
 #include <vector>
 #include <cstring>
@@ -38,8 +39,7 @@ static FslCtrlGeneralResponse parse_gen_resp(const std::vector<uint8_t> &data)
 
 TEST_CASE("FSL state changes to OPER and STANDBY via FSW ctrl requests", "[ctrl_status]")
 {
-    const char *home = getenv("HOME");
-    std::string config_path = std::string(home) + "/dev/elar/elar_fsl/tests/test_config.xml";
+    std::string config_path = get_test_config_path();
     AppConfig cfg = load_config(config_path.c_str());
     App app(cfg);
 

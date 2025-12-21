@@ -15,6 +15,7 @@ static PrintCWD printCWDInstance;
 #include "catch.hpp"
 #include "../src/config.h"
 #include <fstream>
+#include "test_utils.h"
 
 TEST_CASE("Config parsing: minimal valid config", "[config]")
 {
@@ -26,38 +27,39 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     }
     std::cout << "[DEBUG] (test_config) About to create test_config.xml" << std::endl;
     std::cout.flush();
-    const char *xml = R"(<config>
-    <udp>
-        <local_port>1234</local_port>
-        <remote_ip>127.0.0.1</remote_ip>
-        <remote_port>5678</remote_port>
-    </udp>
-    <data_link_uds>
-        <server>
-            <path>/tmp/test1.sock</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-            </server>
-        <client name="test.ul">/tmp/test2.sock</client>
-    </data_link_uds>
-    <ul_uds_mapping>
-        <mapping opcode="1" uds="test.ul" />
-    </ul_uds_mapping>
-    <ctrl_status_uds>
-        <appx>
-            <request>
-                <path>/tmp/appx_to_fcom</path>
-                <receive_buffer_size>2048</receive_buffer_size>
-            </request>
-            <response>
-                <path>/tmp/fcom_to_appx</path>
-                <receive_buffer_size>4096</receive_buffer_size>
-            </response>
-        </appx>
-    </ctrl_status_uds>
-</config>)";
+    const char *xml = R"(
+        <config>
+            <udp>
+                <local_port>1234</local_port>
+                <remote_ip>127.0.0.1</remote_ip>
+                <remote_port>5678</remote_port>
+            </udp>
+            <data_link_uds>
+                <server>
+                    <path>/tmp/test1.sock</path>
+                    <receive_buffer_size>1024</receive_buffer_size>
+                    </server>
+                <client name="test.ul">/tmp/test2.sock</client>
+            </data_link_uds>
+            <ul_uds_mapping>
+                <mapping opcode="1" uds="test.ul" />
+            </ul_uds_mapping>
+            <ctrl_status_uds>
+                <appx>
+                    <request>
+                        <path>/tmp/appx_to_fcom</path>
+                        <receive_buffer_size>2048</receive_buffer_size>
+                    </request>
+                    <response>
+                        <path>/tmp/fcom_to_appx</path>
+                        <receive_buffer_size>4096</receive_buffer_size>
+                    </response>
+                </appx>
+            </ctrl_status_uds>
+        </config>
+    )";
 
-    const char *home = getenv("HOME");
-    std::string config_path = std::string(home) + "/dev/elar/elar_fsl/tests/test_config.xml";
+    std::string config_path = get_test_config_path();
     std::ofstream f(config_path);
     if (f.is_open())
     {
