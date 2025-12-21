@@ -40,7 +40,7 @@ TEST_CASE("FSL state changes to OPER and STANDBY via FSW ctrl requests", "[ctrl_
 {
     const char *home = getenv("HOME");
     std::string config_path = std::string(home) + "/dev/elar/elar_fsl/tests/test_config.xml";
-    AppConfig cfg = load_config(config_path);
+    AppConfig cfg = load_config(config_path.c_str());
     App app(cfg);
 
     // Simulate FSW ctrl response socket
