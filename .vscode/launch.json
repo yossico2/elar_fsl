@@ -5,11 +5,16 @@
             "name": "debug fsl",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/linux/build/debug/fsl",
+            "program": "${workspaceFolder}/build/linux/debug/fsl",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/linux/build/debug",
-            "environment": [],
+            "cwd": "${workspaceFolder}/build/linux/debug",
+            "environment": [
+                {
+                    "name": "LOGGING_LEVEL",
+                    "value": "DEBUG"
+                }
+            ],
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [

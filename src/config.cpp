@@ -249,14 +249,8 @@ AppConfig load_config(const char *filename, int instance)
         }
     }
 
-    // --- Override with other environment variables if set (except sensor_id which is handled earlier in the function) ---
-    // Remove sensor_id override from env here, as it's already handled above
-    if (const char *env = std::getenv("FSL_LOCAL_PORT"))
-        config.udp_local_port = std::atoi(env);
-    if (const char *env = std::getenv("FSL_REMOTE_PORT"))
-        config.udp_remote_port = std::atoi(env);
-    if (const char *env = std::getenv("FSL_REMOTE_IP"))
-        config.udp_remote_ip = env;
+    // Override config fields from environment variables if set
+    override_config_from_env(config);
 
     if (instance >= 0)
     {

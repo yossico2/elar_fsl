@@ -66,6 +66,7 @@ App::App(const AppConfig &config)
     };
 
     Logger::setLevel(toLogLevel(config.logging_level));
+    Logger::info("Logging level: " + config.logging_level);
 
     // Register signal handlers for graceful shutdown
     std::signal(SIGINT, App::signalHandler);
