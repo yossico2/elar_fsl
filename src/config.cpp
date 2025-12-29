@@ -2,8 +2,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <cstdlib>
-
 #include "sdk/tinyxml2/tinyxml2.h"
+#include "instance_utils.h"
 
 using namespace tinyxml2;
 
@@ -252,7 +252,19 @@ AppConfig load_config(const char *filename, int instance)
     // Override config fields from environment variables if set
     override_config_from_env(config);
 
+    // Replace FSL_REMOTE_IP template if present
     if (instance >= 0)
+    {
+        const std::string tmpl = "{i}";
+        size_t pos = config.udp_remote_ip.find(tmpl);
+        if (pos != std::string::npos)
+        {
+            config.udp_remote_ip.replace(pos, tmpl.length(), std::to_string(instance));
+        }
+    }
+
+    // lilo:TODO [review]
+    if (instance >= 0 && !is_k8s_mode())
     {
         // If instance >= 0, rewrite UDS paths for multi-instance support
         rewrite_uds_paths(config, instance);

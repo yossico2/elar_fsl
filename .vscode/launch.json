@@ -13,6 +13,14 @@
                 {
                     "name": "LOGGING_LEVEL",
                     "value": "DEBUG"
+                },
+                {
+                    "name": "HOSTNAME",
+                    "value": "sensor-sim-0"
+                },
+                {
+                    "name": "FSL_REMOTE_IP",
+                    "value": "gsl-{i}"
                 }
             ],
             "externalConsole": false,

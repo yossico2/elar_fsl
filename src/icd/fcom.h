@@ -4,9 +4,9 @@
 #include <cstddef>
 
 // DL_MTU: Downlink max transfer unit
-constexpr size_t DL_MTU = 65536;
+constexpr size_t DL_MTU = 65500;
 // UL_MTU: Uplink max transfer unit
-constexpr size_t UL_MTU = 65536;
+constexpr size_t UL_MTU = 65500;
 
 ////////////////////////////////////////////////////////////////////////
 // FCOM-FSW

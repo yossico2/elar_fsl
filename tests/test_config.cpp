@@ -75,7 +75,7 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     std::cout << "[DEBUG] (test_config) test_config.xml write/close done" << std::endl;
     std::cout.flush();
 
-    AppConfig cfg = load_config(config_path.c_str());
+    AppConfig cfg = load_config(config_path.c_str(), -1);
     REQUIRE(cfg.udp_local_port == 1234);
     REQUIRE(cfg.udp_remote_ip == "127.0.0.1");
     REQUIRE(cfg.udp_remote_port == 5678);

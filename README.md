@@ -26,7 +26,7 @@ See `src/config.xml` for a full example. Key sections:
     <data_link_uds>
         <server name="DL_EL_H">
             <path>/tmp/DL_EL_H</path>
-            <receive_buffer_size>65536</receive_buffer_size>
+            <receive_buffer_size>65500</receive_buffer_size>
         </server>
         <!-- ... more servers/clients ... -->
     </data_link_uds>

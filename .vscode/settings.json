@@ -1,3 +1,6 @@
 {
-    "cmake.buildDirectory": "${workspaceFolder}/build/${variant:target}/${variant:buildType}"
+    "cmake.buildDirectory": "${workspaceFolder}/build/${variant:target}/${variant:buildType}",
+    "files.associations": {
+        "string": "cpp"
+    }
 }

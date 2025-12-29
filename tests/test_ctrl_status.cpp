@@ -31,9 +31,10 @@ TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
     {
         std::cout << "[DEBUG] Failed to open test_config.xml" << std::endl;
     }
+
     std::cout << "[DEBUG] About to call load_config" << std::endl;
     std::cout.flush();
-    AppConfig cfg = load_config(config_path.c_str());
+    AppConfig cfg = load_config(config_path.c_str(), -1);
     std::cout << "[DEBUG] load_config returned successfully" << std::endl;
     std::cout.flush();
     App app(cfg);
@@ -58,7 +59,7 @@ TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
 TEST_CASE("CtrlRequest queue full error", "[ctrl_status]")
 {
     std::string config_path = get_test_config_path();
-    AppConfig cfg = load_config(config_path.c_str());
+    AppConfig cfg = load_config(config_path.c_str(), -1);
     App app(cfg);
     // Fill the queue to max size
     for (size_t i = 0; i < App::CTRL_QUEUE_MAX_SIZE; ++i)

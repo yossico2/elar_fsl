@@ -12,7 +12,7 @@ import threading
 # GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32)
 GSL_FSL_HEADER_SIZE = struct.calcsize("<HHII")
 
-UL_MTU = 65536
+UL_MTU = 65500
 
 
 def send_udp_to_fcom(opcode, payload, udp_ip, udp_port, sensor_id=0):

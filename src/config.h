@@ -59,4 +59,4 @@ struct AppConfig
     std::string logging_level = "INFO";
 };
 
-AppConfig load_config(const char *filename, int instance = -1); ///< Parses config.xml and returns AppConfig, optionally rewriting UDS paths for instance
+AppConfig load_config(const char *filename, int instance); ///< Parses config.xml and returns AppConfig, optionally rewriting UDS paths for instance

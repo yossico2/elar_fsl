@@ -16,6 +16,8 @@
 #include <unistd.h>
 #include <cstring>
 #include <stdexcept>
+#include <netdb.h>
+#include <iostream>
 #include "udp.h"
 
 UdpServerSocket::UdpServerSocket(int local_port, const std::string &remote_ip, int remote_port)
@@ -29,9 +31,23 @@ UdpServerSocket::UdpServerSocket(int local_port, const std::string &remote_ip, i
     memset(&remote_addr_, 0, sizeof(remote_addr_));
     remote_addr_.sin_family = AF_INET;
     remote_addr_.sin_port = htons(remote_port_);
+
+    // Try to parse as IPv4 address first
     if (inet_pton(AF_INET, remote_ip_.c_str(), &remote_addr_.sin_addr) <= 0)
     {
-        throw std::runtime_error("Invalid Remote IP Address: " + remote_ip_);
+        // Not a valid IPv4 address, try to resolve as hostname
+        struct addrinfo hints = {};
+        struct addrinfo *res = nullptr;
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_DGRAM;
+        int err = getaddrinfo(remote_ip_.c_str(), nullptr, &hints, &res);
+        if (err != 0 || !res)
+        {
+            throw std::runtime_error("Invalid Remote IP Address or Hostname: " + remote_ip_);
+        }
+        // Copy resolved address
+        remote_addr_.sin_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
+        freeaddrinfo(res);
     }
 
     fd_ = socket(AF_INET, SOCK_DGRAM, 0);
