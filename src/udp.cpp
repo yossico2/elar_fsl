@@ -1,7 +1,6 @@
-// udp.cpp - Implementation of UdpServerSocket for FSL
+// udp.cpp - Implementation of UdpServerSocket
 //
-// This file implements the UdpServerSocket class, which wraps UDP datagram operations
-// for communication between FSL and the ground segment (GSL).
+// This file implements the UdpServerSocket class.
 //
 // Key methods:
 //   - bindSocket(): Bind the socket to local_port_

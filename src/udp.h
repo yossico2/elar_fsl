@@ -1,7 +1,7 @@
-// udp.h - UDP Socket wrapper for FSL
+// udp.h - UDP Socket wrapper
 //
 // UdpServerSocket provides a simple interface for creating, binding, sending, and receiving
-// datagrams over UDP sockets. Used for communication between FSL and the ground segment (GSL).
+// datagrams over UDP sockets.
 //
 // Usage:
 //   - UdpServerSocket(local_port, remote_ip, remote_port)
@@ -16,7 +16,7 @@
 #include <string>
 #include <netinet/in.h>
 
-// UdpServerSocket: UDP socket wrapper for FSL
+// UdpServerSocket: UDP socket wrapper
 class UdpServerSocket
 {
 public:
