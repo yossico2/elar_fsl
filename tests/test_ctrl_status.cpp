@@ -18,18 +18,18 @@ TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
         std::cout << "[DEBUG] CWD: " << cwd << std::endl;
         std::cout.flush();
     }
-    std::cout << "[DEBUG] About to fopen test_config.xml" << std::endl;
+    std::cout << "[DEBUG] About to fopen config.xml" << std::endl;
     std::cout.flush();
     std::string config_path = get_test_config_path();
     FILE *f = fopen(config_path.c_str(), "r");
     if (f)
     {
-        std::cout << "[DEBUG] test_config.xml opened successfully" << std::endl;
+        std::cout << "[DEBUG] config.xml opened successfully" << std::endl;
         fclose(f);
     }
     else
     {
-        std::cout << "[DEBUG] Failed to open test_config.xml" << std::endl;
+        std::cout << "[DEBUG] Failed to open config.xml" << std::endl;
     }
 
     std::cout << "[DEBUG] About to call load_config" << std::endl;
