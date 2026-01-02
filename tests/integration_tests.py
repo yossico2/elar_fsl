@@ -159,7 +159,9 @@ def test_uds_to_udp_high_rate():
 
     gcom_udp_ip = "127.0.0.1"
     gcom_udp_port = 9010
-    uds_server_path = "/tmp/DL_EL_H"
+    instance = int(os.environ.get("STATEFULSET_INDEX", "-1"))
+    prefix = f"/tmp/sensor-{instance}/" if instance >= 0 else "/tmp/"
+    uds_server_path = prefix + "DL_EL_H"
     data_size = 100 * 1024 * 1024  # 100MB
     chunk_size = 60 * 1024  # 60KB per chunk (fits in uint16)
     total_chunks = math.ceil(data_size / chunk_size)
@@ -168,7 +170,7 @@ def test_uds_to_udp_high_rate():
     # Start UDP receiver (GSL)
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # Increase socket receive buffer size (e.g., 256MB)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 8 * 1024 * 1024)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 256 * 1024 * 1024)
     s.bind((gcom_udp_ip, gcom_udp_port))
     s.settimeout(10)
     received_bytes = 0
