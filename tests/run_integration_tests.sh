@@ -20,10 +20,19 @@ while [[ $# -gt 0 ]]; do
 		shift
 		;;
 	-t | --target)
-		if [[ "$2" == "linux" || "$2" == "Linux" ]]; then
-			TARGET="linux"
-		elif [[ "$2" == "petalinux" || "$2" == "PetaLinux" || "$2" == "petalinux" ]]; then
-			TARGET="petalinux"
+		if [[ -n "${2}" ]]; then
+			target_lc="${2,,}"
+			if [[ "$target_lc" == "linux" ]]; then
+				TARGET="linux"
+			elif [[ "$target_lc" == "arm" ]]; then
+				TARGET="arm"
+			else
+				echo "Unknown target: ${2}. Use 'linux' or 'arm'."
+				exit 1
+			fi
+		else
+			echo "Unknown target: ${2}. Use 'linux' or 'arm'."
+			exit 1
 		fi
 		shift
 		shift

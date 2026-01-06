@@ -22,8 +22,8 @@
                 "value": "linux"
             },
             {
-                "label": "PetaLinux",
-                "value": "petalinux"
+                "label": "Arm",
+                "value": "arm"
             }
         ]
     }

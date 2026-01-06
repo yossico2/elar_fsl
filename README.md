@@ -62,12 +62,12 @@ You can use the provided script to build for different configurations and target
 ./make.sh -b debug
 ./make.sh -b release
 
-# Specify target (linux or petalinux)
+# Specify target (linux or arm)
 ./make.sh -t linux
-./make.sh -t petalinux
+./make.sh -t arm
 
 # Combine options
-./make.sh -b release -t petalinux
+./make.sh -b release -t arm
 ```
 
 The script will automatically use separate build directories for each configuration.
@@ -88,12 +88,12 @@ The build directory is ignored by git using the provided `.gitignore` file.
 ./fsl
 ```
 
-## Building for PetaLinux
+## Building for Arm
 
-Set the following environment variables to point to your PetaLinux cross-compilers before running CMake:
+Set the following environment variables to point to your Arm cross-compilers before running CMake:
 
 ```bash
-export PETALINUX=1
+export PLATFORM_ARM=1
 export PETALINUX_C_COMPILER=<path-to-petalinux-gcc>
 export PETALINUX_CXX_COMPILER=<path-to-petalinux-g++>
 mkdir -p build
@@ -101,9 +101,9 @@ cd build
 
 # FSL: Flexible Socket Layer (C++)
 
-FSL is a C++ application providing a flexible socket layer for message routing between UDP and Unix Domain Sockets (UDS). It is designed for both Ubuntu/Linux and PetaLinux environments, with a focus on modular configuration and robust testing.
+FSL is a C++ application providing a flexible socket layer for message routing between UDP and Unix Domain Sockets (UDS). It is designed for both Ubuntu/Linux and Arm environments, with a focus on modular configuration and robust testing.
 
-Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual paths to your PetaLinux toolchain binaries.
+Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual paths to your Arm toolchain binaries.
 
 ## Source Structure
 - `src/main.cpp`: Entry point
@@ -139,12 +139,12 @@ The `make.sh` script supports several commands for building, testing, cleaning, 
 ./make.sh -b debug
 ./make.sh -b release
 
-# Specify target (linux or petalinux)
+# Specify target (linux or arm)
 ./make.sh -t linux
-./make.sh -t petalinux
+./make.sh -t arm
 
 # Combine options
-./make.sh -b release -t petalinux
+./make.sh -b release -t arm
 ```
 
 The script uses separate build directories for each configuration.
@@ -157,12 +157,12 @@ The script uses separate build directories for each configuration.
 ./make.sh -b debug
 ./make.sh -b release
 
-# Specify target (linux or petalinux)
+# Specify target (linux or arm)
 ./make.sh -t linux
-./make.sh -t petalinux
+./make.sh -t arm
 
 # Combine options
-./make.sh -b release -t petalinux
+./make.sh -b release -t arm
 ```
 
 The script uses separate build directories for each configuration.
@@ -194,7 +194,7 @@ cmake ..
 make
 ```
 
-Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual paths to your PetaLinux toolchain binaries.
+Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual paths to your Arm toolchain binaries.
             </response>
         </PLMG>
 

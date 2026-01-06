@@ -3,13 +3,13 @@
 set -e
 
 function print_usage() {
-	echo "Usage: $0 [clean|test|all|image] [-b|--build debug|release] [-t|--target linux|petalinux] [-h|--help]"
+	echo "Usage: $0 [clean|test|all|image] [-b|--build debug|release] [-t|--target linux|arm] [-h|--help]"
 	echo "  clean         Remove build folder"
 	echo "  test          Run unit and integration tests"
 	echo "  all           Run clean, build, and test"
 	echo "  image         Build the Docker image (fsl-app)"
 	echo "  -b, --build   Build type: debug (default) or release"
-	echo "  -t, --target  Target platform: linux (default) or petalinux"
+	echo "  -t, --target  Target platform: linux (default) or arm"
 	echo "  -h, --help    Show this help message"
 }
 
@@ -37,12 +37,18 @@ function main() {
 			shift
 			;;
 		-t | --target)
-			if [[ -n "${2}" && ("${2}" == "linux" || "${2}" == "Linux") ]]; then
-				TARGET="linux"
-			elif [[ -n "${2}" && ("${2}" == "petalinux" || "${2}" == "PetaLinux") ]]; then
-				TARGET="petalinux"
+			if [[ -n "${2}" ]]; then
+				target_lc="${2,,}"
+				if [[ "$target_lc" == "linux" ]]; then
+					TARGET="linux"
+				elif [[ "$target_lc" == "arm" ]]; then
+					TARGET="arm"
+				else
+					echo "Unknown target: ${2}. Use 'linux' or 'arm'."
+					exit 1
+				fi
 			else
-				echo "Unknown target: ${2}. Use 'linux' or 'petalinux'."
+				echo "Unknown target: ${2}. Use 'linux' or 'arm'."
 				exit 1
 			fi
 			shift
@@ -148,8 +154,8 @@ function main() {
 	ls -l .
 	ls -l ./CMakeLists.txt || echo 'CMakeLists.txt not found!'
 
-	if [[ "${TARGET}" == "petalinux" ]]; then
-		export PETALINUX=1
+	if [[ "${TARGET}" == "arm" ]]; then
+		export PLATFORM_ARM=1
 		# TODO
 	else
 		cmake -S . -B "${BUILD_TARGET_DIR}" -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DTARGET=${TARGET}

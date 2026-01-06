@@ -5,7 +5,7 @@ endif()
 
 # Set default TARGET to linux if not defined (use CACHE to ensure global visibility)
 if(NOT DEFINED TARGET OR "${TARGET}" STREQUAL "" OR "${TARGET}" STREQUAL ".")
-    set(TARGET "linux" CACHE STRING "Target platform (linux or petalinux)")
+    set(TARGET "linux" CACHE STRING "Target platform (linux or arm)")
 endif()
 
 set(TESTS_SOURCES
@@ -26,10 +26,10 @@ target_include_directories(tests PRIVATE tests src src/sdk src/sdk/nlohmann src/
 
 if("${TARGET}" STREQUAL "linux")
     set(ELAR_ARCH "x86_64")
-elseif("${TARGET}" STREQUAL "petalinux")
+elseif("${TARGET}" STREQUAL "arm")
     set(ELAR_ARCH "arm")
 else()
-    message(FATAL_ERROR "Unknown TARGET: ${TARGET}. Use 'linux' or 'petalinux'.")
+    message(FATAL_ERROR "Unknown TARGET: ${TARGET}. Use 'linux' or 'arm'.")
 endif()
 
 # set(LIBSDK_PATH "$ENV{HOME}/dev/elar/sdk/lib/${ELAR_ARCH}/libsdk.a")
@@ -47,13 +47,13 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Platform selection
-if(DEFINED ENV{PETALINUX})
-    message(STATUS "Compiling for PetaLinux")
-    # Example: set cross-compiler and flags for PetaLinux
+if(DEFINED ENV{PLATFORM_ARM})
+    message(STATUS "Compiling for Arm")
+    # Example: set cross-compiler and flags for Arm
     set(CMAKE_SYSTEM_NAME Linux)
     set(CMAKE_C_COMPILER $ENV{PETALINUX_C_COMPILER})
     set(CMAKE_CXX_COMPILER $ENV{PETALINUX_CXX_COMPILER})
-    add_definitions(-DPETALINUX)
+    add_definitions(-DPLATFORM_ARM)
 else()
     message(STATUS "Compiling for Ubuntu/Linux")
 endif()
