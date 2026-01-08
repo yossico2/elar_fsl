@@ -7,7 +7,7 @@ function print_usage() {
 	echo "  clean         Remove build folder"
 	echo "  test          Run unit and integration tests"
 	echo "  all           Run clean, build, and test"
-	echo "  image         Build the Docker image (fsl-app)"
+	echo "  image         Build the Docker image"
 	echo "  -b, --build   Build type: debug (default) or release"
 	echo "  -t, --target  Target platform: linux (default) or arm"
 	echo "  -h, --help    Show this help message"
