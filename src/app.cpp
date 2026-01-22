@@ -221,10 +221,12 @@ void App::run()
     for (const auto &s : config_.uds_servers)
         uds_servers_list += "  " + s.path + "\n";
     Logger::info(uds_servers_list);
+
     std::string uds_clients_list = "UDS Clients (uplink):\n";
     for (const auto &entry : config_.uds_clients)
         uds_clients_list += "  " + entry.first + ": " + entry.second + "\n";
     Logger::info(uds_clients_list);
+
     std::string ctrl_status_uds = "Ctrl/Status UDS:\n";
     for (const auto &entry : config_.ctrl_uds_name)
     {
@@ -237,7 +239,6 @@ void App::run()
             ctrl_status_uds += " response: " + c.response_path;
         ctrl_status_uds += "\n";
     }
-
     Logger::info(ctrl_status_uds);
 
     // === Start ctrl worker thread
@@ -343,7 +344,7 @@ void App::run()
                         ssize_t sent = client_it->second->send(buffer + GSL_FSL_HEADER_SIZE, n - GSL_FSL_HEADER_SIZE);
                         if (sent < 0)
                         {
-                            Logger::error("[UPLINK] Failed to send to UDS client '" + ctrl_uds_name + "' (dest: " + std::to_string(dest) + ")");
+                            Logger::error("[UPLINK] Failed to send to UDS client '" + ctrl_uds_name + "' (dest: " + std::to_string(dest) + ", seq_id=" + std::to_string(hdr->seq_id) + ")");
                         }
                         else
                         {
@@ -351,7 +352,7 @@ void App::run()
                             {
                                 auto it = UL_DestinationNames.find(dest);
                                 std::string dest_name = (it != UL_DestinationNames.end()) ? it->second : std::to_string(dest);
-                                Logger::debug("[UPLINK] Routed UDP->UDS: dest=" + dest_name + ", bytes=" + std::to_string(sent) + ", uds='" + ctrl_uds_name + "'");
+                                Logger::debug("[UPLINK] Routed UDP->UDS: dest=" + dest_name + ", bytes=" + std::to_string(sent) + ", seq_id=" + std::to_string(hdr->seq_id) + ", uds='" + ctrl_uds_name + "'");
                             }
                         }
                     }
