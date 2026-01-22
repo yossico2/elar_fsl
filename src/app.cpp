@@ -1,5 +1,3 @@
-#include <chrono>
-#include <thread>
 // app.cpp - Implementation of the FSL Application
 //
 // This file implements the App class, which manages UDP and UDS sockets for routing
@@ -27,6 +25,7 @@
 #include <set>
 #include <unordered_map>
 
+#include <chrono>
 #include <thread>
 #include <queue>
 #include <mutex>
@@ -317,7 +316,7 @@ void App::run()
         int ret = poll(fds.data(), nfds, -1);
         if (ret < 0)
         {
-            Logger::error(std::string("Poll failed: ") + ::strerror(errno));
+            Logger::error(std::string("[UPLINK] Poll failed: ") + ::strerror(errno));
             break;
         }
 
@@ -344,7 +343,7 @@ void App::run()
                         ssize_t sent = client_it->second->send(buffer + GSL_FSL_HEADER_SIZE, n - GSL_FSL_HEADER_SIZE);
                         if (sent < 0)
                         {
-                            Logger::error("Failed to send to UDS client '" + ctrl_uds_name + "' (dest: " + std::to_string(dest) + ")");
+                            Logger::error("[UPLINK] Failed to send to UDS client '" + ctrl_uds_name + "' (dest: " + std::to_string(dest) + ")");
                         }
                         else
                         {
@@ -352,18 +351,18 @@ void App::run()
                             {
                                 auto it = UL_DestinationNames.find(dest);
                                 std::string dest_name = (it != UL_DestinationNames.end()) ? it->second : std::to_string(dest);
-                                Logger::debug("Routed UDP->UDS: dest=" + dest_name + ", bytes=" + std::to_string(sent) + ", uds='" + ctrl_uds_name + "'");
+                                Logger::debug("[UPLINK] Routed UDP->UDS: dest=" + dest_name + ", bytes=" + std::to_string(sent) + ", uds='" + ctrl_uds_name + "'");
                             }
                         }
                     }
                     else
                     {
-                        Logger::error("No UDS client found for name: " + ctrl_uds_name);
+                        Logger::error("[UPLINK] No UDS client found for name: " + ctrl_uds_name);
                     }
                 }
                 else
                 {
-                    Logger::error("No UDS mapping for dest: " + std::to_string(dest));
+                    Logger::error("[UPLINK] No UDS mapping for dest: " + std::to_string(dest));
                 }
             }
         }
@@ -385,19 +384,19 @@ void App::run()
                     int sent = processDownlinkMessage(server_name, downlink_data, msg_id_counter);
                     if (sent < 0)
                     {
-                        Logger::error("Failed to send UDP packet from UDS server index " + std::to_string(i));
+                        Logger::error("[DOWNLINK] Failed to send UDP packet from UDS server index " + std::to_string(i));
                     }
                     else
                     {
                         if (Logger::isDebugEnabled())
                         {
-                            Logger::debug("Routed UDS->UDP: bytes=" + std::to_string(sent) + ", src='" + uds_servers_[i]->getMyPath() + "' (server: '" + server_name + "')");
+                            Logger::debug("[DOWNLINK] Routed UDS->UDP: bytes=" + std::to_string(sent) + ", src='" + uds_servers_[i]->getMyPath() + "' (server: '" + server_name + "')");
                         }
                     }
                 }
                 else if (n < 0)
                 {
-                    Logger::error("Failed to receive from UDS server index " + std::to_string(i));
+                    Logger::error("[DOWNLINK] Failed to receive from UDS server index " + std::to_string(i));
                 }
             }
         }
